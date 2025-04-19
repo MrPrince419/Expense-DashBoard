@@ -1,0 +1,8 @@
+streamlit
+pandas
+bcrypt
+jsonschema
+python-dotenv
+plotly
+altair
+xlsxwriter

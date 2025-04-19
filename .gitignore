@@ -1,0 +1,22 @@
+# Ignore sensitive files
+users.json
+session.json
+admin_logs.txt
+admin_stats.csv
+admin_stats/
+user_data/
+.env
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
