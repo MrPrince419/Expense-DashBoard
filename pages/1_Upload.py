@@ -1,9 +1,16 @@
+"""
+Upload & Export page for the Expense Tracker application.
+Handles data importing from various file formats, column mapping,
+data cleaning, and exporting processed data.
+"""
 import streamlit as st
 from auth import restrict_access
 from utils import load_user_data, save_user_data
 
+# Ensure only authenticated users can access this page
 restrict_access()
 
+# Additional authentication check
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
     st.error("Please login to view this page.")
     st.stop()
@@ -12,12 +19,14 @@ if "user" not in st.session_state:
     st.error("Please login to view this page.")
     st.stop()
 
+# Load the current user's data
 username = st.session_state["user"]
 data = load_user_data(username)
 
 import pandas as pd
 import numpy as np
 
+# Navigation bar
 col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
     if st.button("🏠 Home"):
@@ -33,6 +42,7 @@ with col3:
 
 st.divider()
 
+# Check for required dependencies
 try:
     import xlsxwriter
 except ImportError:
@@ -44,6 +54,16 @@ st.subheader("Upload Your Financial Data")
 uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "xls", "json", "txt", "parquet"])
 
 def standardize_columns(data):
+    """
+    Standardize column names to match expected format.
+    Maps common variations of column names to standard ones.
+    
+    Args:
+        data (DataFrame): DataFrame with columns to standardize
+        
+    Returns:
+        DataFrame: DataFrame with standardized column names
+    """
     column_mapping = {
         "amount spent": "Amount",
         "amt": "Amount",
@@ -57,6 +77,16 @@ def standardize_columns(data):
     return data
 
 def automatic_column_mapping(data):
+    """
+    Intelligently map columns with handling for duplicates.
+    Maps various column name formats to standardized names.
+    
+    Args:
+        data (DataFrame): DataFrame with columns to map
+        
+    Returns:
+        DataFrame: DataFrame with mapped column names
+    """
     column_mapping = {
         "amount spent": "Amount",
         "amt": "Amount",
@@ -71,6 +101,7 @@ def automatic_column_mapping(data):
     for col in data.columns:
         standardized_col = column_mapping.get(col.lower(), col)
         if standardized_col in mapped_columns.values():
+            # Handle duplicate mappings with suffixes
             suffix = 1
             new_col = f"{standardized_col}_{suffix}"
             while new_col in mapped_columns.values():
@@ -84,6 +115,19 @@ def automatic_column_mapping(data):
     return data
 
 def load_uploaded_file(uploaded_file):
+    """
+    Load data from uploaded file based on file extension.
+    Supports multiple file formats including CSV, Excel, JSON, etc.
+    
+    Args:
+        uploaded_file: File object from st.file_uploader
+        
+    Returns:
+        DataFrame: Pandas DataFrame containing the uploaded data
+        
+    Raises:
+        ValueError: If file format is unsupported
+    """
     if uploaded_file.name.endswith(".csv"):
         return pd.read_csv(uploaded_file)
     elif uploaded_file.name.endswith(".xlsx") or uploaded_file.name.endswith(".xls"):
@@ -97,44 +141,55 @@ def load_uploaded_file(uploaded_file):
     else:
         raise ValueError("Unsupported file format. Please upload CSV, Excel, JSON, TXT, or Parquet files.")
 
+# Handle file upload and processing
 if uploaded_file:
     with st.spinner("Processing your file..."):
         try:
+            # Load the file data
             data = load_uploaded_file(uploaded_file)
 
+            # Map columns to standardized format
             data = automatic_column_mapping(data)
 
+            # Validate required columns are present
             required_columns = ["Date", "Amount", "Name"]
             missing_columns = [col for col in required_columns if col not in data.columns]
             if missing_columns:
                 st.error(f"Missing required columns: {', '.join(missing_columns)}")
 
+            # Identify rows with missing values in required columns
             invalid_rows = data[data[required_columns].isnull().any(axis=1)]
             if not invalid_rows.empty:
                 st.warning("Some rows have missing values in required columns. These rows are highlighted below:")
                 st.dataframe(invalid_rows)
 
+            # Store processed data in session state
             st.session_state["transactions"] = data
             
+            # Log the upload activity for analytics
             from auth import log_user_activity
             log_user_activity(username, "upload")
             
+            # Show preview of the data
             st.write("### Preview of Uploaded Data")
             st.dataframe(data)
         except Exception as e:
             st.error(f"Error loading file: {e}")
 
+# Display data summary and cleaning options
 if "transactions" in st.session_state:
     st.write("### Data Summary")
     num_rows = len(st.session_state["transactions"])
     num_columns = len(st.session_state["transactions"].columns)
     num_missing = st.session_state["transactions"].isnull().sum().sum()
 
+    # Display key metrics
     col1, col2, col3 = st.columns(3)
     col1.metric("Rows", num_rows)
     col2.metric("Columns", num_columns)
     col3.metric("Missing Values", num_missing)
 
+    # Data cleaning options
     st.write("### Data Cleaning Options")
     remove_duplicates = st.checkbox("Remove Duplicates")
     fill_missing = st.checkbox("Fill Missing Values with 'Unknown'")
@@ -142,6 +197,7 @@ if "transactions" in st.session_state:
     if remove_duplicates or fill_missing:
         cleaned_data = st.session_state["transactions"].copy()
 
+        # Handle duplicate removal
         if remove_duplicates:
             original_count = len(cleaned_data)
             cleaned_data = cleaned_data.drop_duplicates()
@@ -149,6 +205,7 @@ if "transactions" in st.session_state:
             if removed_count > 0:
                 st.success(f"Removed {removed_count} duplicate rows")
 
+        # Handle missing value replacement
         if fill_missing:
             missing_count = cleaned_data.isnull().sum().sum()
             if missing_count > 0:
@@ -157,24 +214,42 @@ if "transactions" in st.session_state:
             else:
                 st.info("No missing values found")
 
+        # Update the session state with cleaned data
         st.session_state["transactions"] = cleaned_data.copy()
 
+        # Save the cleaned data to the user's file
         save_user_data(username, st.session_state["transactions"])
 
 def filter_and_clean_data(data):
+    """
+    Prepare data for export by cleaning and standardizing formats.
+    Handles missing values, string trimming, and numeric conversions.
+    
+    Args:
+        data (DataFrame): DataFrame to clean and filter
+        
+    Returns:
+        DataFrame: Cleaned and filtered DataFrame
+    """
     data = data.copy()
+    # Remove rows with all missing values
     data = data.dropna()
+    # Clean string values by stripping whitespace
     for col in data.select_dtypes(include=['object']).columns:
         if hasattr(data[col], 'str') and hasattr(data[col].str, 'strip'):
             data[col] = data[col].str.strip()
+    # Convert numeric columns to proper numeric format
     for col in data.select_dtypes(include=['float', 'int']).columns:
         data[col] = pd.to_numeric(data[col], errors='coerce')
     return data
 
+# Data export section
 if "transactions" in st.session_state:
     st.subheader("Export Data")
     filtered_data = filter_and_clean_data(st.session_state["transactions"])
     export_format = st.selectbox("Select export format", ["CSV", "Excel"])
+    
+    # CSV export option
     if export_format == "CSV":
         st.download_button(
             label="Download Filtered Data as CSV",
@@ -182,6 +257,7 @@ if "transactions" in st.session_state:
             file_name="filtered_data.csv",
             mime="text/csv"
         )
+    # Excel export option
     elif export_format == "Excel":
         from io import BytesIO
         output = BytesIO()
@@ -194,6 +270,7 @@ if "transactions" in st.session_state:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
+# FAQ section
 st.subheader("FAQ")
 with st.expander("What file formats are supported?"):
     st.write("You can upload the following file formats:")

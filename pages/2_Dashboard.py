@@ -1,11 +1,18 @@
+"""
+Dashboard page for the Expense Tracker application.
+Visualizes financial data with analytics, charts, and insights.
+Allows users to edit transactions and view spending patterns.
+"""
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from auth import restrict_access
 from utils import load_user_data, save_user_data
 
+# Ensure only authenticated users can access this page
 restrict_access()
 
+# Additional authentication check
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
     st.error("Please login to view this page.")
     st.stop()
@@ -14,6 +21,7 @@ if "user" not in st.session_state:
     st.error("Please login to view this page.")
     st.stop()
 
+# Navigation bar
 col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
     if st.button("🏠 Home"):
@@ -29,9 +37,11 @@ with col3:
 
 st.divider()
 
+# Load the current user's data
 username = st.session_state["user"]
 data = load_user_data(username)
 
+# Check if there's data to display
 if "transactions" not in st.session_state:
     st.warning("No data uploaded yet. Please upload your financial data on the Upload page.")
     st.stop()
@@ -40,14 +50,22 @@ st.title("Dashboard")
 
 st.subheader("Key Metrics")
 def calculate_metrics():
+    """
+    Calculate key financial metrics from transaction data.
+    
+    Returns:
+        tuple: (total_income, total_expenses, net_savings)
+    """
     if "Type" not in st.session_state["transactions"].columns:
         return 0, 0, 0
         
+    # Calculate total income, expenses, and savings
     total_income = st.session_state["transactions"].query("Type == 'Income'")["Amount"].sum()
     total_expenses = st.session_state["transactions"].query("Type == 'Expense'")["Amount"].sum()
     net_savings = total_income - total_expenses
     return total_income, total_expenses, net_savings
 
+# Display key financial metrics
 col1, col2, col3 = st.columns(3)
 total_income, total_expenses, net_savings = calculate_metrics()
 
@@ -58,6 +76,7 @@ with col2:
 with col3:
     savings_metric = st.metric("Net Savings", f"${net_savings:,.2f}", delta_color="inverse")
 
+# Transaction editor
 st.subheader("Transactions")
 edited_transactions = st.data_editor(
     st.session_state["transactions"],
@@ -66,22 +85,29 @@ edited_transactions = st.data_editor(
     on_change=None
 )
 
+# Handle changes to transactions and save them
 if not edited_transactions.equals(st.session_state["transactions"]):
+    # Update the stored transactions with edited values
     st.session_state["transactions"] = edited_transactions.copy()
     
+    # Recalculate metrics based on edited data
     total_income, total_expenses, net_savings = calculate_metrics()
     st.rerun()
 
+    # Save the updated transactions to user data file
     save_user_data(username, st.session_state["transactions"])
 
+# Basic insights section
 st.subheader("Basic Insights")
 if "transactions" in st.session_state:
     transactions = st.session_state["transactions"]
 
+    # Total transaction count
     st.write("### Total Transactions")
     total_transactions = len(transactions)
     st.metric("Total Transactions", total_transactions)
 
+    # Average transaction amount
     st.write("### Average Transaction Amount")
     if "Amount" in transactions.columns:
         avg_transaction = transactions["Amount"].mean()
@@ -89,6 +115,7 @@ if "transactions" in st.session_state:
     else:
         st.info("Please ensure your data has an Amount column.")
 
+    # Most frequent merchant
     st.write("### Most Frequent Merchant")
     if "Name" in transactions.columns:
         most_frequent_merchant = transactions["Name"].mode()[0]
@@ -96,8 +123,10 @@ if "transactions" in st.session_state:
     else:
         st.info("Please ensure your data has a Name column.")
 
+# Visualizations section
 st.subheader("Visualizations")
 
+# Income vs Expense chart
 st.write("### Income vs Expense")
 if "Type" in st.session_state["transactions"].columns and "Date" in st.session_state["transactions"].columns:
     line_chart = px.line(
@@ -111,8 +140,10 @@ if "Type" in st.session_state["transactions"].columns and "Date" in st.session_s
 else:
     st.info("Please ensure your data has Date, Amount, and Type columns.")
 
+# Spending category breakdown
 st.write("### Spending Breakdown")
 if "Type" in st.session_state["transactions"].columns and "Category" in st.session_state["transactions"].columns:
+    # Filter for expense transactions only
     expense_data = st.session_state["transactions"].query("Type == 'Expense'")
     if not expense_data.empty:
         pie_chart = px.pie(
@@ -127,15 +158,20 @@ if "Type" in st.session_state["transactions"].columns and "Category" in st.sessi
 else:
     st.info("Please ensure your data has Type and Category columns.")
 
+# Advanced insights section
 st.subheader("Advanced Insights")
 if "transactions" in st.session_state:
     transactions = st.session_state["transactions"]
 
+    # Monthly spending trends
     st.write("### Monthly Trends")
     if "Date" in transactions.columns and "Amount" in transactions.columns:
+        # Convert date column to period for monthly grouping
         transactions["Month"] = pd.to_datetime(transactions["Date"]).dt.to_period("M")
         transactions["Month"] = transactions["Month"].astype(str)
         monthly_summary = transactions.groupby("Month")["Amount"].sum().reset_index()
+        
+        # Create monthly bar chart
         monthly_chart = px.bar(
             monthly_summary,
             x="Month",
@@ -147,10 +183,14 @@ if "transactions" in st.session_state:
     else:
         st.info("Please ensure your data has Date and Amount columns.")
 
+    # Top spending categories
     st.write("### Top Spending Categories")
     if "Category" in transactions.columns and "Amount" in transactions.columns:
+        # Group by category and get top 5
         category_summary = transactions.groupby("Category")["Amount"].sum().reset_index()
         category_summary = category_summary.sort_values(by="Amount", ascending=False).head(5)
+        
+        # Create category bar chart
         category_chart = px.bar(
             category_summary,
             x="Category",
@@ -162,12 +202,17 @@ if "transactions" in st.session_state:
     else:
         st.info("Please ensure your data has Category and Amount columns.")
 
+    # Spending anomalies detection
     st.write("### Anomalies in Spending")
     with st.expander("View Anomalies in Spending"):
         if "Amount" in transactions.columns:
+            # Calculate statistical outliers (2 standard deviations from mean)
             mean_amount = transactions["Amount"].mean()
             std_dev = transactions["Amount"].std()
-            anomalies = transactions[(transactions["Amount"] > mean_amount + 2 * std_dev) | (transactions["Amount"] < mean_amount - 2 * std_dev)]
+            anomalies = transactions[(transactions["Amount"] > mean_amount + 2 * std_dev) | 
+                                   (transactions["Amount"] < mean_amount - 2 * std_dev)]
+            
+            # Display anomalies if found
             if not anomalies.empty:
                 st.warning("Anomalies detected in your spending data:")
                 st.dataframe(anomalies)
