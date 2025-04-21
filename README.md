@@ -263,9 +263,6 @@ expense-tracker/
    chmod +x .git/hooks/pre-commit
    ```
 
-### Reporting Security Issues
-
-If you discover any security issues, please report them via email rather than creating a public issue.
 
 ## License
 
