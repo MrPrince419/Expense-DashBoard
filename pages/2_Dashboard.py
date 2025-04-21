@@ -37,10 +37,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Ensure only authenticated users can access this page
 restrict_access()
 
-# Additional authentication check
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
     st.error("Please login to view this page.")
     st.stop()
@@ -49,27 +47,21 @@ if "user" not in st.session_state:
     st.error("Please login to view this page.")
     st.stop()
 
-# When returning to Dashboard, ensure transactions are loaded
 if "user" in st.session_state:
     username = st.session_state["user"]
     
-    # Get transaction data - ensure real-time sync with Upload page
     data = get_transactions()
     
-    # Add a debug message to show data is preserved
     if not data.empty:
         st.success(f"Loaded {len(data)} transactions from your account")
 
-# Display the current user
 st.markdown(
     f"<div><strong>👤 {st.session_state['user']}</strong></div><hr>",
     unsafe_allow_html=True
 )
 
-# Get transaction data - ensure real-time sync with Upload page
 data = get_transactions()
 
-# Handle empty data gracefully
 if data.empty:
     st.info("🔍 No transaction data found. Upload some data to view insights!")
     st.markdown("### Quick Start")
@@ -80,14 +72,11 @@ if data.empty:
     """)
     st.stop()
 
-# Process and ensure required columns exist
 st.title("📊 Financial Dashboard")
 
-# Ensure required columns exist (CHANGED: more resilient approach)
 required_columns = ["Date", "Amount", "Name"]
 optional_columns = ["Type", "Category"]
 
-# Check for missing required columns
 missing_required = [col for col in required_columns if col not in data.columns]
 if missing_required:
     st.warning(f"Missing required columns: {', '.join(missing_required)}. Some features may not work correctly.")
@@ -99,25 +88,20 @@ if missing_required:
         else:
             data[col] = "Unknown"
 
-# Add optional columns with default values if missing
 for col in optional_columns:
     if col not in data.columns:
         data[col] = "Unknown"
 
-# Ensure Amount is numeric
 data["Amount"] = pd.to_numeric(data["Amount"], errors="coerce").fillna(0)
 
-# Ensure Date is datetime
 if "Date" in data.columns:
     data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
     
-    # Add date filtering
     with st.sidebar:
         st.header("Dashboard Filters")
         date_min = data["Date"].min()
         date_max = data["Date"].max()
         
-        # Default to last 30 days if we have enough data
         default_start = max(date_min, date_max - timedelta(days=30))
         
         date_range = st.date_input(
@@ -136,7 +120,6 @@ if "Date" in data.columns:
             else:
                 st.warning("No data in selected date range. Showing all data.")
 
-# Create two columns for top metrics
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -160,30 +143,25 @@ with col3:
     transaction_count = len(data)
     st.metric("Total Transactions", f"{transaction_count:,}")
     
-    # Category diversity (if available)
     if "Category" in data.columns and data["Category"].nunique() > 1:
         category_count = data["Category"].nunique()
         st.caption(f"Categories: {category_count} unique")
     else:
         st.caption("Add a 'Category' column to track spending categories")
 
-# Spending Consistency Score
 st.markdown("### 📈 Spending Patterns")
 col1, col2 = st.columns(2)
 
 with col1:
     if "Date" in data.columns and len(data) > 1:
         try:
-            # Group by date and calculate daily totals
             daily_totals = data.groupby(data["Date"].dt.date)["Amount"].sum()
             
             if len(daily_totals) > 1:
-                # Calculate coefficient of variation (normalized std dev)
                 mean_spending = daily_totals.mean()
                 std_spending = daily_totals.std()
                 variability = (std_spending / mean_spending) if mean_spending > 0 else 0
                 
-                # Convert to consistency score (100 = perfectly consistent, 0 = highly variable)
                 consistency = max(0, min(100, 100 - (variability * 100)))
                 
                 st.metric("Spending Consistency", f"{consistency:.1f}/100")
@@ -203,7 +181,6 @@ with col1:
 
 with col2:
     if "Category" in data.columns and data["Category"].nunique() > 1:
-        # Category diversity
         diversity = data["Category"].nunique()
         top_category = data.groupby("Category")["Amount"].sum().idxmax()
         top_category_percent = (data[data["Category"] == top_category]["Amount"].sum() / total_spent) * 100
@@ -213,11 +190,9 @@ with col2:
     else:
         st.info("Add a 'Category' column to unlock category insights")
 
-# Transaction Over Time visualization
 st.markdown("### 📅 Transactions Over Time")
 
 if "Date" in data.columns and not data.empty:
-    # Group by day and sum amounts
     time_data = data.copy()
     time_data["Date"] = pd.to_datetime(time_data["Date"])
     daily_totals = time_data.groupby(time_data["Date"].dt.date)["Amount"].sum().reset_index()
@@ -228,7 +203,7 @@ if "Date" in data.columns and not data.empty:
         ax.set_xlabel("Date")
         ax.set_ylabel("Amount ($)")
         ax.grid(True, alpha=0.3)
-        fig.autofmt_xdate()  # Rotate date labels
+        fig.autofmt_xdate()
         
         st.pyplot(fig)
     else:
@@ -236,18 +211,14 @@ if "Date" in data.columns and not data.empty:
 else:
     st.info("Add dates to your transactions to see spending over time.")
 
-# Income vs Expense Analysis (if Type column exists)
 if "Type" in data.columns and data["Type"].nunique() > 1:
     st.markdown("### 💸 Income vs Expenses")
     
-    # Identify income and expense categories (common values)
     income_keywords = ["income", "revenue", "salary", "deposit", "credit"]
     expense_keywords = ["expense", "cost", "payment", "debit", "purchase"]
     
-    # Clean up Type categories and standardize
     data["Type"] = data["Type"].astype(str).str.lower().str.strip()
     
-    # Function to categorize Types
     def categorize_type(type_value):
         if any(keyword in type_value for keyword in income_keywords):
             return "Income"
@@ -258,7 +229,6 @@ if "Type" in data.columns and data["Type"].nunique() > 1:
     
     data["TypeCategory"] = data["Type"].apply(categorize_type)
     
-    # Create income/expense chart
     type_data = data.groupby("TypeCategory")["Amount"].sum().reset_index()
     
     if len(type_data) > 1:
@@ -269,7 +239,6 @@ if "Type" in data.columns and data["Type"].nunique() > 1:
         
         st.pyplot(fig)
         
-        # Calculate income-expense balance
         if "Income" in type_data["TypeCategory"].values and "Expense" in type_data["TypeCategory"].values:
             income = type_data.loc[type_data["TypeCategory"] == "Income", "Amount"].values[0]
             expense = type_data.loc[type_data["TypeCategory"] == "Expense", "Amount"].values[0]
@@ -287,27 +256,20 @@ if "Type" in data.columns and data["Type"].nunique() > 1:
 else:
     st.info("Add a 'Type' column with values like 'Income' and 'Expense' to unlock Income/Expense insights")
 
-# Category breakdown visualizations
 if "Category" in data.columns and data["Category"].nunique() > 1:
     st.markdown("### 📈 Spending by Category")
     
     category_data = data.groupby("Category")["Amount"].sum().reset_index().sort_values("Amount", ascending=False)
     
-    # 🔄 Pre-filter negative values to avoid crashes across all visualizations
     category_data = category_data[category_data["Amount"] > 0]
     
-    # Only proceed if we have positive data to show
     if not category_data.empty:
-        # Display pie chart and bar chart stacked vertically
-        
-        # Interactive Plotly Pie Chart with tooltips
         st.subheader("🥧 Category Distribution")
         
         if len(category_data) > 5:
-            # Limit to top 5 categories and group others
             top_5 = category_data.head(5)
             others_sum = category_data.iloc[5:]["Amount"].sum()
-            if others_sum > 0:  # Only add "Others" if sum is positive
+            if others_sum > 0:
                 top_5 = pd.concat([top_5, pd.DataFrame({"Category": ["Others"], "Amount": [others_sum]})])
             
             pie_data = top_5.copy()
@@ -316,24 +278,21 @@ if "Category" in data.columns and data["Category"].nunique() > 1:
             pie_data = category_data.copy()
             title = "Category Distribution"
         
-        # Create interactive pie chart with Plotly
         fig = px.pie(
             pie_data, 
             names='Category', 
             values='Amount',
             title=title,
-            hole=0.3,  # Creates a donut chart for better readability
-            color_discrete_sequence=px.colors.qualitative.Plotly  # Attractive color scheme
+            hole=0.3,
+            color_discrete_sequence=px.colors.qualitative.Plotly
         )
         
-        # Update with more readable tooltips and remove text inside slices
         fig.update_traces(
-            textinfo='none',  # Remove text inside the slices
+            textinfo='none',
             hoverinfo='label+percent+value',
             hovertemplate='<b>%{label}</b><br>Amount: $%{value:.2f}<br>Percentage: %{percent}<extra></extra>'
         )
         
-        # Improve legend layout
         fig.update_layout(
             legend=dict(
                 orientation="v",
@@ -344,13 +303,10 @@ if "Category" in data.columns and data["Category"].nunique() > 1:
             )
         )
         
-        # Display the interactive chart
         st.plotly_chart(fig, use_container_width=True)
         
-        # Add spacing between charts
         st.write("")
         
-        # Bar chart of all categories - now full width
         st.subheader("📊 Category Breakdown (Bar Chart)")
         fig_bar, ax_bar = plt.subplots(figsize=(10, 6))
         plot_data = category_data.head(10) if len(category_data) > 10 else category_data
@@ -361,7 +317,6 @@ if "Category" in data.columns and data["Category"].nunique() > 1:
             ax_bar.set_ylabel("Category", fontsize=12)
             ax_bar.tick_params(labelsize=10)
             
-            # Add value labels to the bars
             for i, bar in enumerate(bars.patches):
                 width = bar.get_width()
                 ax_bar.text(width + 5, bar.get_y() + bar.get_height()/2, 
@@ -381,15 +336,12 @@ if "Category" in data.columns and data["Category"].nunique() > 1:
 else:
     st.info("Add a 'Category' column to visualize spending by category")
 
-# Advanced insights and recommendations
 st.markdown("### 🧠 Smart Insights")
 
 insights = []
 
-# Check for consistent high spend categories
 if "Category" in data.columns and "Date" in data.columns and data["Category"].nunique() > 1:
     try:
-        # Get categories with spending in multiple time periods
         data["Month"] = data["Date"].dt.to_period("M")
         category_frequency = data.groupby("Category")["Month"].nunique()
         consistent_categories = category_frequency[category_frequency > 1].index.tolist()
@@ -399,7 +351,6 @@ if "Category" in data.columns and "Date" in data.columns and data["Category"].nu
     except:
         pass
 
-# Check for unusual large transactions
 if "Amount" in data.columns and len(data) > 5:
     try:
         mean_amount = data["Amount"].mean()
@@ -413,14 +364,14 @@ if "Amount" in data.columns and len(data) > 5:
     except:
         pass
 
-# Check spending acceleration/deceleration if we have dates
 if "Date" in data.columns and "Amount" in data.columns and len(data) > 10:
     try:
-        # Split data into two time periods
-        data = data.sort_values("Date")
-        half_point = len(data) // 2
-        first_half = data.iloc[:half_point]
-        second_half = data.iloc[half_point:]
+        # Create an explicit copy of the data before sorting to avoid SettingWithCopyWarning
+        analysis_data = data.copy()
+        analysis_data = analysis_data.sort_values("Date")
+        half_point = len(analysis_data) // 2
+        first_half = analysis_data.iloc[:half_point]
+        second_half = analysis_data.iloc[half_point:]
         
         first_total = first_half["Amount"].sum()
         second_total = second_half["Amount"].sum()
@@ -433,37 +384,30 @@ if "Date" in data.columns and "Amount" in data.columns and len(data) > 10:
     except:
         pass
 
-# Display insights
 if insights:
     for insight in insights:
         st.markdown(f"- {insight}")
 else:
     st.caption("Add more transaction data to unlock smart insights")
 
-# Recommendations based on data
 st.markdown("### 💡 Recommendations")
 
 recommendations = []
 
-# Basic recommendations
 recommendations.append("🔍 Categorize all transactions to get better insights")
 
-# Budget recommendation if we have category data
 if "Category" in data.columns and data["Category"].nunique() > 1:
     top_category = data.groupby("Category")["Amount"].sum().idxmax()
     recommendations.append(f"💰 Consider setting a budget for your highest spend category: {top_category}")
 
-# Consistency recommendation if we have date data
 if "Date" in data.columns and len(data) > 10:
     recommendations.append("📆 Set up regular payment tracking to improve your financial visibility")
 
-# Display recommendations
 if recommendations:
     for i, recommendation in enumerate(recommendations[:3], 1):
         st.markdown(f"**{i}.** {recommendation}")
 else:
     st.caption("Add more transaction data to unlock personalized recommendations")
 
-# Footer
 st.markdown("---")
 st.caption("💡 Tip: Upload more detailed transaction data to get even better insights and visualizations")

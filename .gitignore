@@ -1,5 +1,5 @@
 # Ignore sensitive files
-users.json
+# users.json - COMMENTED OUT to allow pushing admin credentials
 session.json
 admin_logs.txt
 auth_debug.log

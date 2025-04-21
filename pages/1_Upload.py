@@ -4,14 +4,17 @@ Handles data importing from various file formats, column mapping,
 data cleaning, and exporting processed data.
 """
 import streamlit as st
+
+# Set the page layout to wide mode - MUST BE THE FIRST STREAMLIT COMMAND
+st.set_page_config(page_title="Upload & Export", layout="wide")
+
 from auth import restrict_access
 from utils import load_user_data, save_user_data, filter_and_clean_data, get_transactions
 import pandas as pd
 import logging
-import os  # Add this import for file path handling
+import os
 from datetime import datetime
 
-# Try importing data profiling libraries
 try:
     from ydata_profiling import ProfileReport
     PROFILING_AVAILABLE = "ydata"
@@ -27,7 +30,6 @@ except ImportError:
             PROFILING_AVAILABLE = None
             st.warning("Install 'ydata-profiling' for enhanced data profiling: `pip install ydata-profiling`", icon="⚠️")
 
-# Try importing fuzzy matching
 try:
     from rapidfuzz import process, fuzz
     FUZZY_MATCHING_AVAILABLE = True
@@ -35,17 +37,12 @@ except ImportError:
     FUZZY_MATCHING_AVAILABLE = False
     st.warning("Install 'rapidfuzz' for better column matching: `pip install rapidfuzz`", icon="⚠️")
 
-# Configure logging
 logging.basicConfig(
     filename="upload.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# Set the page layout to wide mode
-st.set_page_config(page_title="Upload & Export", layout="wide")
-
-# Custom CSS for compact file uploader
 st.markdown("""
 <style>
 [data-testid="stFileUploader"] section {
@@ -57,10 +54,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Ensure only authenticated users can access this page
 restrict_access()
 
-# Additional authentication check
 if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
     st.error("Please login to view this page.")
     st.stop()
@@ -69,19 +64,15 @@ if "user" not in st.session_state:
     st.error("Please login to view this page.")
     st.stop()
 
-# Load the current user's data
 username = st.session_state["user"]
-data = get_transactions()  # This should now properly retrieve existing data
+data = get_transactions()
 
-# Ensure we always have transactions in session state
 if "transactions" not in st.session_state or st.session_state["transactions"].empty:
-    # Load from user file if available, otherwise initialize empty
     user_data = load_user_data(username)
     if not user_data.empty:
         st.session_state["transactions"] = user_data.copy()
         st.success("Successfully loaded your saved data!")
 
-# Display username but remove navigation buttons
 st.markdown(
     f"<div><strong>👤 {st.session_state['user']}</strong></div><hr>",
     unsafe_allow_html=True
@@ -89,13 +80,11 @@ st.markdown(
 
 st.title("Upload & Export")
 
-# Display last upload information if available
 if "uploaded_file_name" in st.session_state and "upload_timestamp" in st.session_state:
     st.caption(f"Last uploaded: `{st.session_state['uploaded_file_name']}` on {st.session_state['upload_timestamp']}")
 elif "transactions" in st.session_state and not st.session_state["transactions"].empty:
     st.caption(f"You have {len(st.session_state['transactions'])} transactions loaded")
 
-# Centered Upload Box
 st.markdown("### 📁 Upload a Transaction File")
 
 with st.container():
@@ -106,7 +95,6 @@ with st.container():
         label_visibility="collapsed"
     )
 
-    # Updated upload instructions
     with st.expander("ℹ️ Upload Instructions"):
         st.markdown("""
         Your file should contain at least:
@@ -122,7 +110,6 @@ st.divider()
 def fuzzy_column_match(col_name, possible_targets, threshold=70):
     """Use fuzzy matching to find the best match for a column name."""
     if not FUZZY_MATCHING_AVAILABLE:
-        # Fallback to simple contains matching if rapidfuzz not available
         for target in possible_targets:
             if target in col_name.lower():
                 return target
@@ -145,12 +132,10 @@ def detect_duplicate_transactions(data, threshold=80):
     if not FUZZY_MATCHING_AVAILABLE or len(data) < 2:
         return pd.DataFrame()
     
-    # Create a unique fingerprint for each transaction
     data['amount_str'] = data['Amount'].astype(str)
     
     potential_duplicates = []
     
-    # Only process if we have a reasonable number of rows (avoid O(n²) explosion)
     max_rows_to_check = 1000
     if len(data) > max_rows_to_check:
         st.warning(f"Limiting duplicate detection to first {max_rows_to_check} transactions for performance reasons.")
@@ -158,22 +143,17 @@ def detect_duplicate_transactions(data, threshold=80):
     else:
         check_data = data
     
-    # For each transaction, compare with all others
     for i, row1 in check_data.iterrows():
-        # Combine Name and Amount for comparison
         fingerprint1 = f"{row1['Name']} {row1['amount_str']}"
         
         for j, row2 in check_data.iterrows():
-            # Skip comparing to self
             if i >= j:
                 continue
                 
             fingerprint2 = f"{row2['Name']} {row2['amount_str']}"
             
-            # Get similarity score using Levenshtein distance
             similarity = fuzz.ratio(fingerprint1.lower(), fingerprint2.lower())
             
-            # If similarity is above threshold, consider it a potential duplicate
             if similarity >= threshold:
                 potential_duplicates.append({
                     'Index1': i,
@@ -185,7 +165,6 @@ def detect_duplicate_transactions(data, threshold=80):
                     'Date2': row2.get('Date', 'Unknown')
                 })
     
-    # Create DataFrame from potential duplicates
     if potential_duplicates:
         dup_df = pd.DataFrame(potential_duplicates)
         return dup_df.sort_values('Similarity', ascending=False)
@@ -216,14 +195,11 @@ def process_uploaded_file(uploaded_file):
     Process the uploaded file and return a cleaned DataFrame with intelligently mapped columns.
     """
     try:
-        # Handle ZIP files
         if uploaded_file.name.endswith(".zip"):
             import zipfile
             import io
             
-            # Extract ZIP file contents
             with zipfile.ZipFile(uploaded_file) as z:
-                # Find the first supported file in the archive
                 supported_formats = [".csv", ".xlsx", ".xls", ".json", ".txt", ".parquet"]
                 for filename in z.namelist():
                     if any(filename.endswith(fmt) for fmt in supported_formats):
@@ -234,14 +210,11 @@ def process_uploaded_file(uploaded_file):
                             
             raise ValueError("No supported files found in ZIP archive.")
                 
-        # Load file into DataFrame
         if uploaded_file.name.endswith(".csv"):
             data = pd.read_csv(uploaded_file)
         elif uploaded_file.name.endswith((".xlsx", ".xls")):
-            # Handle multiple sheets
             excel_file = pd.ExcelFile(uploaded_file)
             if len(excel_file.sheet_names) > 1:
-                # Use the first non-empty sheet or let user select
                 sheet_name = st.selectbox("Select sheet:", excel_file.sheet_names)
                 data = pd.read_excel(excel_file, sheet_name=sheet_name)
             else:
@@ -255,10 +228,9 @@ def process_uploaded_file(uploaded_file):
         else:
             raise ValueError("Unsupported file format.")
 
-        # Check file size and warn if large - Fixed the file size calculation
         uploaded_file.seek(0, os.SEEK_END)
         file_size_mb = uploaded_file.tell() / (1024 * 1024)
-        uploaded_file.seek(0)  # Reset file pointer
+        uploaded_file.seek(0)
         
         row_count = len(data)
         
@@ -267,23 +239,18 @@ def process_uploaded_file(uploaded_file):
         if row_count > 50000:
             st.warning(f"Large dataset detected ({row_count:,} rows). Consider using a smaller sample for better performance.", icon="⚠️")
 
-        # ✅ Check if the file is empty or has no recognizable columns
         if data.empty or len(data.columns) == 0:
             raise ValueError("The uploaded file appears to be empty or has no recognizable columns.")
 
-        # Heuristics for headerless CSV
         if all(str(col).lower().startswith("unnamed") or str(col).isdigit() for col in data.columns):
             data.columns = [f"col_{i}" for i in range(data.shape[1])]
             logging.info("Detected headerless file and renamed columns.")
 
-        # Make columns lowercase and strip whitespace
         data.columns = [str(col).strip().lower() for col in data.columns]
 
-        # Rename generic columns if no headers were detected
         if all(str(c).isdigit() for c in data.columns[:3]):
             data.columns = [f"Column_{i}" for i in range(len(data.columns))]
 
-        # Improved column mapping with fuzzy matching
         desired_columns = {
             "Amount": ["amount", "sum", "price", "cost", "total", "payment", "value", "expense"],
             "Name": ["name", "merchant", "vendor", "store", "description", "desc", "transaction", "details", "item"],
@@ -291,7 +258,6 @@ def process_uploaded_file(uploaded_file):
             "Category": ["category", "cat", "type", "group", "label", "classification"]
         }
 
-        # Smart auto-mapping to standard names using fuzzy matching
         col_map = {}
         for col in data.columns:
             matched = False
@@ -303,21 +269,18 @@ def process_uploaded_file(uploaded_file):
                         matched = True
                         break
                 else:
-                    # Fallback if rapidfuzz is not available
                     if any(alias in col.lower() for alias in aliases):
                         col_map[col] = std_col
                         matched = True
                         break
             
             if not matched:
-                col_map[col] = col  # Keep original if unknown
+                col_map[col] = col
 
         data.rename(columns=col_map, inplace=True)
 
-        # Drop duplicate columns if they somehow existed
         data = data.loc[:, ~data.columns.duplicated()]
 
-        # Ensure required columns exist and impute missing values smartly
         required_cols = ["Name", "Amount", "Date", "Category"]
         for col in required_cols:
             if col not in data.columns:
@@ -331,27 +294,20 @@ def process_uploaded_file(uploaded_file):
                     data[col] = "Unknown"
                     logging.info(f"Created missing {col} column with default value 'Unknown'")
 
-        # Handle minimal dataset with just Name and Amount
         if "Name" in data.columns and "Amount" in data.columns and "Date" not in data.columns:
-            # Create a placeholder Date column with today's date
             data["Date"] = pd.Timestamp.today().strftime("%Y-%m-%d")
             logging.info("Added placeholder Date column to dataset with only Name and Amount")
         
-        # If we have numeric columns but none mapped to Amount, try to detect it
         if "Amount" not in data.columns:
             numeric_cols = data.select_dtypes(include=['number']).columns
             if len(numeric_cols) > 0:
-                # Use the first numeric column as Amount
                 data.rename(columns={numeric_cols[0]: "Amount"}, inplace=True)
                 logging.info(f"Auto-detected Amount column from numeric column: {numeric_cols[0]}")
         
-        # Fill remaining missing values
         data.fillna("Unknown", inplace=True)
 
-        # Clean and standardize data
         data = filter_and_clean_data(data)
 
-        # 🔥 Final smart sorting/formatting
         if "Category" in data.columns:
             data["Category"] = data["Category"].astype(str).str.strip().str.title()
 
@@ -365,7 +321,6 @@ def process_uploaded_file(uploaded_file):
             except Exception as e:
                 logging.warning(f"Could not sort by Date: {e}")
 
-        # Optional: Sort by Category then Date (Reddit-style tier grouping)
         if all(col in data.columns for col in ["Category", "Date"]):
             data = data.sort_values(by=["Category", "Date"], ascending=[True, False])
 
@@ -376,19 +331,15 @@ def process_uploaded_file(uploaded_file):
         logging.error(f"File processing failed: {e}")
         raise ValueError(f"Error processing file: {e}")
 
-# Handle file upload and processing
 if uploaded_file:
     try:
         data = process_uploaded_file(uploaded_file)
-        # Make sure to preserve the session state
         st.session_state["transactions"] = data.copy()
         st.session_state["uploaded_file_name"] = uploaded_file.name
         
-        # Store upload timestamp
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         st.session_state["upload_timestamp"] = current_time
         
-        # Store upload metadata in user data
         if "upload_history" not in st.session_state:
             st.session_state["upload_history"] = []
         
@@ -399,7 +350,6 @@ if uploaded_file:
             "column_count": len(data.columns)
         }
         
-        # Add to history (limit to last 10 uploads)
         st.session_state["upload_history"].insert(0, upload_metadata)
         st.session_state["upload_history"] = st.session_state["upload_history"][:10]
         
@@ -409,7 +359,6 @@ if uploaded_file:
             st.info("🧼 Cleaned & organized: fuzzy-matched columns, sorted by category/date, trimmed text, filled missing values.")
             st.dataframe(data.head())
         
-        # Detect potential duplicate transactions
         if FUZZY_MATCHING_AVAILABLE and len(data) > 1:
             with st.expander("🔍 Duplicate Detection", expanded=False):
                 duplicate_threshold = st.slider("Similarity threshold (%)", 50, 100, 80)
@@ -422,7 +371,6 @@ if uploaded_file:
                             st.warning(f"Found {len(duplicates)} potential duplicate transactions.")
                             st.dataframe(duplicates)
                             
-                            # Allow downloading duplicates report
                             csv = duplicates.to_csv(index=False)
                             st.download_button(
                                 label="Download Duplicates Report",
@@ -433,7 +381,6 @@ if uploaded_file:
                         else:
                             st.success("No potential duplicate transactions found!")
         
-        # Generate and display data profile if available
         if PROFILING_AVAILABLE:
             with st.expander("📊 Advanced Data Profile", expanded=False):
                 if st.button("Generate Detailed Data Profile"):
@@ -447,7 +394,6 @@ if uploaded_file:
     except ValueError as e:
         st.error(str(e))
 
-# Display data summary - Fixed to only show when file is uploaded and not empty
 if "transactions" in st.session_state and not st.session_state["transactions"].empty:
     with st.expander("📊 Data Summary", expanded=False):
         num_rows = len(st.session_state["transactions"])
@@ -455,13 +401,11 @@ if "transactions" in st.session_state and not st.session_state["transactions"].e
         num_missing = st.session_state["transactions"].isnull().sum().sum()
         st.markdown(f"**Total Rows:** `{num_rows}` | **Columns:** `{num_columns}` | **Missing Values:** `{num_missing}`")
     
-    # Add upload history expander
     if "upload_history" in st.session_state and st.session_state["upload_history"]:
         with st.expander("📂 Upload History", expanded=False):
             for i, upload in enumerate(st.session_state["upload_history"], 1):
                 st.markdown(f"**{i}.** `{upload['filename']}` - {upload['timestamp']} ({upload['row_count']} rows, {upload['column_count']} columns)")
     
-    # Save the data to the user's file with metadata
     metadata = {
         "last_upload_filename": st.session_state.get("uploaded_file_name", "Unknown"),
         "last_upload_timestamp": st.session_state.get("upload_timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
@@ -470,19 +414,16 @@ if "transactions" in st.session_state and not st.session_state["transactions"].e
     
     save_user_data(username, st.session_state["transactions"], metadata)
     
-    # Add a notice about persistence
     st.info("💾 Your data is automatically saved and will be available when you return to this page.")
 else:
     with st.expander("📊 Data Summary", expanded=False):
         st.markdown("**Total Rows:** `0` | **Columns:** `0` | **Missing Values:** `0`")
 
-# Data export section
 if "transactions" in st.session_state:
     st.subheader("⬇️ Export Your Cleaned Data")
     filtered_data = filter_and_clean_data(st.session_state["transactions"])
     export_format = st.selectbox("Choose export format:", ["CSV", "Excel"])
     
-    # CSV export option
     if export_format == "CSV":
         st.download_button(
             label="Download CSV",
@@ -490,7 +431,6 @@ if "transactions" in st.session_state:
             file_name="filtered_data.csv",
             mime="text/csv"
         )
-    # Excel export option
     elif export_format == "Excel":
         from io import BytesIO
         output = BytesIO()
@@ -503,7 +443,6 @@ if "transactions" in st.session_state:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-# FAQ section
 st.subheader("FAQ")
 with st.expander("What file formats are supported?"):
     st.write("You can upload the following file formats:")

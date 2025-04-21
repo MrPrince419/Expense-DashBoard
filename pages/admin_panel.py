@@ -5,6 +5,10 @@ engagement tracking, and system monitoring.
 Only accessible to users with admin privileges.
 """
 import streamlit as st
+
+# Set page config as the first Streamlit command
+st.set_page_config(page_title="Admin Panel", layout="wide")
+
 from auth import load_users, require_admin, save_users, logout, log_user_activity
 import pandas as pd
 import logging
@@ -13,14 +17,12 @@ import json
 import os
 import altair as alt
 
-# Configure logging
 logging.basicConfig(
     filename="admin_actions.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# Replace the admin check section
 st.write("### Admin Authentication Check")
 if st.session_state.get("role") == "admin":
     st.success("✅ You are properly authenticated as an admin.")
@@ -29,10 +31,8 @@ else:
     st.info("To login as admin, use:\n- Email: admin@example.com\n- Password: Admin@123456\n\nPlease logout and use the Admin login option.")
     st.stop()
 
-# Add debugging output to help diagnose the issue
 st.write(f"Debug - Session state: authenticated={st.session_state.get('authenticated')}, role={st.session_state.get('role')}")
 
-# Check admin access
 require_admin()
 
 def delete_user(username):
@@ -103,7 +103,6 @@ def admin_dashboard():
     users = load_users()
     st.write(f"**Total Registered Users:** {len(users)}")
 
-    # Activity data processing
     activity_data = {}
     total_logins = 0
     total_uploads = 0
@@ -146,10 +145,8 @@ def admin_dashboard():
             "recent_activity": recent_activity
         }
     
-    # Display summary metrics in a more visually appealing way
     st.write("### Summary Metrics")
     
-    # Use a 4-column layout for key metrics
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Active Users", active_users_count, 
@@ -164,18 +161,15 @@ def admin_dashboard():
         st.metric("Active Sessions", len(st.session_state.get("active_sessions", [])),
                  help="Number of users currently logged in")
     
-    # Engagement Stats (full width)
     st.write("### Engagement Statistics")
     st.info("Hover over any chart element to see detailed information.")
     
-    # Display login frequency chart
     login_counts = {username: data["login_count"] for username, data in activity_data.items()}
     if any(count > 0 for count in login_counts.values()):
         st.write("#### Login Frequency by User")
         login_df = pd.DataFrame({"User": login_counts.keys(), "Logins": login_counts.values()})
         login_df = login_df.sort_values("Logins", ascending=False)
         
-        # Create Altair chart with tooltips instead of basic bar chart
         login_chart = alt.Chart(login_df).mark_bar().encode(
             x=alt.X('User:N', title='User', sort='-y'),
             y=alt.Y('Logins:Q', title='Number of Logins'),
@@ -190,9 +184,7 @@ def admin_dashboard():
     else:
         st.info("No login activity recorded yet.")
     
-    # User Roles Chart - Now full width with tooltips
     st.write("#### User Role Distribution")
-    # Count actual roles instead of using static values
     role_counts = {}
     for user_data in users.values():
         role = user_data.get("role", "user")
@@ -200,7 +192,6 @@ def admin_dashboard():
     
     role_df = pd.DataFrame({"Role": role_counts.keys(), "Count": role_counts.values()})
     
-    # Create a pie chart with tooltips
     role_chart = alt.Chart(role_df).mark_arc().encode(
         theta=alt.Theta(field="Count", type="quantitative"),
         color=alt.Color(field="Role", type="nominal", 
@@ -213,10 +204,8 @@ def admin_dashboard():
     
     st.altair_chart(role_chart, use_container_width=True)
     
-    # Activity Timeline (upload vs login activity)
     st.write("#### User Activity Timeline")
     
-    # Collect all activity timestamps
     all_activity = []
     for username, user_data in users.items():
         for log in user_data.get("activity_log", []):
@@ -234,7 +223,6 @@ def admin_dashboard():
         activity_df = pd.DataFrame(all_activity)
         activity_df = activity_df.sort_values("Timestamp")
         
-        # Create a timeline chart with tooltips
         timeline = alt.Chart(activity_df).mark_circle(size=100).encode(
             x=alt.X('Date:T', title='Date'),
             y=alt.Y('User:N', title='User'),
@@ -249,13 +237,11 @@ def admin_dashboard():
     else:
         st.info("No user activity data available for timeline.")
     
-    # Data Completeness Chart
     st.write("#### Data Quality Assessment")
     
     completeness_score = calculate_data_completeness(users)
     st.write(f"**Data Completeness Score:** {completeness_score:.2f}%")
     
-    # Create a gauge chart for data completeness
     completion_source = pd.DataFrame([
         {"category": "Complete", "value": completeness_score},
         {"category": "Incomplete", "value": 100 - completeness_score}
@@ -277,7 +263,6 @@ def admin_dashboard():
     
     st.altair_chart(gauge, use_container_width=True)
     
-    # User Growth Chart
     st.write("#### User Growth Over Time")
     
     registration_dates = []
@@ -293,13 +278,11 @@ def admin_dashboard():
         registration_df = pd.DataFrame(registration_dates)
         registration_df = registration_df.sort_values("Date")
         
-        # Calculate cumulative count
         dates_only = registration_df[["Date"]].copy()
         dates_only["count"] = 1
         dates_only = dates_only.sort_values("Date")
         dates_only["Cumulative Users"] = dates_only["count"].cumsum()
         
-        # Create line chart with tooltips
         chart = alt.Chart(dates_only).mark_line(point=True).encode(
             x=alt.X('Date:T', title='Registration Date'),
             y=alt.Y('Cumulative Users:Q', title='Total Users'),
@@ -313,13 +296,10 @@ def admin_dashboard():
     else:
         st.info("No registration dates available for user growth chart.")
     
-    # User Table - Enhanced with filtering
     st.write("### User Table")
     
-    # Prepare user data table
     user_table = []
     for username, user_data in users.items():
-        # Calculate last upload
         upload_logs = [log for log in user_data.get("activity_log", []) if log.get("action") == "upload"]
         last_upload = "Never"
         if upload_logs:
@@ -329,7 +309,6 @@ def admin_dashboard():
             except (ValueError, TypeError):
                 last_upload = "Error parsing date"
         
-        # Calculate uploads this month
         uploads_this_month = 0
         try:
             uploads_this_month = sum(
@@ -339,7 +318,6 @@ def admin_dashboard():
         except (ValueError, TypeError):
             pass
         
-        # Calculate last login
         login_logs = [log for log in user_data.get("activity_log", []) if log.get("action") == "login"]
         last_login = "Never"
         if login_logs:
@@ -354,7 +332,6 @@ def admin_dashboard():
             except (ValueError, TypeError):
                 last_login = "Error parsing date"
         
-        # Add to table
         user_table.append({
             "Username": username,
             "Role": user_data.get("role", "user"),
@@ -366,10 +343,8 @@ def admin_dashboard():
             "Email": user_data.get("email", "Unknown")
         })
     
-    # Allow filtering the table
     user_df = pd.DataFrame(user_table)
     
-    # Add filtering options
     filter_cols = st.columns(3)
     with filter_cols[0]:
         filter_role = st.selectbox("Filter by Role", ["All"] + list(role_counts.keys()))
@@ -379,20 +354,16 @@ def admin_dashboard():
         sort_by = st.selectbox("Sort By", 
                               ["Username", "Role", "Total Uploads", "Total Logins"])
     
-    # Apply filters
     filtered_df = user_df
     if filter_role != "All":
         filtered_df = filtered_df[filtered_df["Role"] == filter_role]
     if has_uploads:
         filtered_df = filtered_df[filtered_df["Total Uploads"] > 0]
     
-    # Apply sorting
     filtered_df = filtered_df.sort_values(sort_by, ascending=False)
     
-    # Display the filtered table
     st.dataframe(filtered_df, use_container_width=True)
     
-    # Inactive Users Section
     st.write("### Inactive Accounts")
     thirty_days_ago = datetime.now() - timedelta(days=30)
     inactive_users = []
@@ -427,7 +398,6 @@ def admin_dashboard():
     else:
         st.write("No inactive users found.")
 
-    # Admin Logs Section
     st.write("### Admin Activity Logs")
     if st.button("View Admin Logs"):
         try:
@@ -438,7 +408,6 @@ def admin_dashboard():
             st.info("No admin logs available yet.")
             log_action("Admin viewed logs (no logs available)")
 
-    # Export Options
     st.write("### Export Data")
     current_date = datetime.now().strftime('%Y-%m-%d')
     
