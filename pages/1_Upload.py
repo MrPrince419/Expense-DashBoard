@@ -18,17 +18,23 @@ from datetime import datetime
 try:
     from ydata_profiling import ProfileReport
     PROFILING_AVAILABLE = "ydata"
-except ImportError:
+    st.info("✅ ydata-profiling loaded")
+except Exception as e:
+    st.error(f"❌ Failed to import ydata-profiling: {e}")
     try:
         from pandas_profiling import ProfileReport
         PROFILING_AVAILABLE = "pandas"
-    except ImportError:
+        st.info("✅ pandas-profiling loaded")
+    except Exception as e:
+        st.error(f"❌ Failed to import pandas-profiling: {e}")
         try:
             import sweetviz
             PROFILING_AVAILABLE = "sweetviz"
-        except ImportError:
+            st.info("✅ sweetviz loaded")
+        except Exception as e:
             PROFILING_AVAILABLE = None
             st.warning("Install 'ydata-profiling' for enhanced data profiling: `pip install ydata-profiling`", icon="⚠️")
+            st.error(f"❌ All profiling imports failed: {e}")
 
 try:
     from rapidfuzz import process, fuzz
