@@ -21,7 +21,6 @@ sweetviz==2.1.4  # Alternative profiling library
 
 # Dependencies required for Streamlit Cloud deployment
 setuptools>=65.5.0
-pkg_resources==0.0.0  # Force inclusion to prevent import errors
 
 # Optional: Uncomment if you need pandas-profiling as a fallback
 # pandas-profiling>=3.0.0
