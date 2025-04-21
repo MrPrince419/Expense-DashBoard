@@ -15,9 +15,13 @@ pyarrow>=6.0.0  # For Parquet support
 # Fuzzy matching
 rapidfuzz>=2.0.0
 
-# Advanced data profiling (choose one)
-ydata-profiling>=4.0.0  # Modern version of pandas-profiling
-# OR
+# Advanced data profiling
+ydata-profiling==4.16.1  # Modern version of pandas-profiling
+sweetviz==2.1.4  # Alternative profiling library
+
+# Dependencies required for Streamlit Cloud deployment
+setuptools>=65.5.0
+pkg_resources==0.0.0  # Force inclusion to prevent import errors
+
+# Optional: Uncomment if you need pandas-profiling as a fallback
 # pandas-profiling>=3.0.0
-# OR
-# sweetviz>=2.0.0
