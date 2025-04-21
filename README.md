@@ -2,7 +2,7 @@
 
 A comprehensive financial management application built with Streamlit for tracking personal and business expenses with advanced analytics and administrative capabilities.
 
-![Expense Tracker Dashboard](https://via.placeholder.com/800x400?text=Expense+Tracker+Dashboard)
+![Expense Tracker](asset/landing%20page.png)
 
 ## Table of Contents
 
@@ -23,6 +23,8 @@ A comprehensive financial management application built with Streamlit for tracki
 
 Expense Tracker is a web-based application that helps individuals and small businesses manage their finances by tracking income, expenses, and providing insightful analytics. Built with Python and Streamlit, it offers an intuitive interface for uploading financial data, visualizing spending patterns, and generating reports.
 
+![Dashboard Overview](asset/dashboard%20page%20%231.png)
+
 ## Features
 
 ### User Features
@@ -32,10 +34,14 @@ Expense Tracker is a web-based application that helps individuals and small busi
 - **Data Management**: Store and retrieve transaction data across sessions
 - **Profile Management**: User-specific data storage and retrieval
 
+![Upload Interface](asset/upload%20page%20%231.png)
+
 ### Admin Features
 - **User Management**: View and manage user accounts
 - **Activity Tracking**: Monitor login and upload activities
 - **Admin Dashboard**: Access to user statistics and application metrics
+
+![Admin Dashboard](asset/admin%20panel%20%231.png)
 
 ## Why Expense Tracker?
 
@@ -51,6 +57,8 @@ Expense Tracker bridges this gap by providing:
 2. **Data Flexibility**: Support for multiple data formats and automatic mapping of columns
 3. **Meaningful Insights**: Visualizations and metrics that help users understand their spending habits
 4. **Administrative Oversight**: Tools for organizations to manage and monitor user activity
+
+![Data Insights](asset/dashboard%20page%20%232.png)
 
 ### Impact
 
@@ -132,12 +140,16 @@ For initial setup, use these credentials (remember to change them in production)
 2. Create a user account with a secure password
 3. Login with your credentials
 
+![Login Screen](asset/landing%20page.png)
+
 ### Data Upload
 
 1. Navigate to the Upload page
 2. Use the file uploader to import your financial data
 3. Review the automatic column mapping
 4. Apply data cleaning options if needed
+
+![Data Upload Process](asset/upload%20page%20%232.png)
 
 ### Dashboard Analysis
 
@@ -149,12 +161,16 @@ For initial setup, use these credentials (remember to change them in production)
    - Monthly trends
    - Top spending categories
 
+![Dashboard Analytics](asset/dashboard%20page%20%233.png)
+
 ### Data Export
 
 1. Navigate to the Upload page
 2. Scroll to the Export section
 3. Select your desired format (CSV or Excel)
 4. Click the download button
+
+![Data Export](asset/upload%20page%20%233.png)
 
 ## Admin Guide
 
@@ -167,11 +183,16 @@ Access the admin panel by logging in with admin credentials to manage:
 3. **Data Completeness**: Track the quality of user data
 4. **User Growth**: Visualize user adoption over time
 
+![Admin User Management](asset/admin%20panel%20%232.png)
+![Admin Statistics](asset/admin%20panel%20%233.png)
+
 ### Downloading Statistics
 
 1. Navigate to the bottom of the admin panel
 2. Click the "Download Admin Stats" button
 3. Stats will be saved as CSV with the current date
+
+![Admin Reports](asset/admin%20panel%20%234.png)
 
 ## Data Security
 
@@ -263,7 +284,6 @@ expense-tracker/
    chmod +x .git/hooks/pre-commit
    ```
 
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -276,4 +296,4 @@ For questions or support, please open an issue on our GitHub repository or conta
 
 ---
 
-*Last updated: April 18, 2025*
+*Last updated: April 21, 2025*
