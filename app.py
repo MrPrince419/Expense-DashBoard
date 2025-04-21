@@ -5,7 +5,7 @@ This file serves as the landing page and manages user authentication state.
 """
 import streamlit as st
 import json
-from auth import signup, logout, initialize_session_state, login, reset_password, hash_password, load_users, save_users, hash_answer
+from auth import signup, logout, initialize_session_state, login, reset_password, hash_password, load_users, save_users, hash_answer, check_password
 from utils import load_user_data, save_user_data
 
 st.set_page_config(page_title="Expense Tracker", page_icon="💰", layout="wide")
@@ -44,12 +44,20 @@ def forgot_password():
         secret_question = user.get("secret_question", "Secret Question")
         st.text(f"Your Secret Question: {secret_question}")
         secret_answer = st.text_input("Answer Your Secret Question").strip()
+
+        # Add warning for capitalization
+        if secret_answer and not secret_answer.islower():
+            st.warning("Warning: Your answer contains capital letters. Ensure it matches exactly.")
+
         new_password = st.text_input("Enter New Password", type="password").strip()
         confirm_new_password = st.text_input("Confirm New Password", type="password").strip()
 
         if st.button("Reset Password"):
             if hash_answer(secret_answer) != user.get("secret_answer"):
                 st.error("Incorrect answer to the secret question.")
+                return
+            if check_password(new_password, user["password"]):  # Compare hashed passwords
+                st.error("New password cannot be the same as the old password. Please choose a different password.")
                 return
             if new_password != confirm_new_password:
                 st.error("Passwords do not match. Please try again.")

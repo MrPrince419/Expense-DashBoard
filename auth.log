@@ -17,3 +17,6 @@ tornado.websocket.WebSocketClosedError
 2025-04-20 22:37:55,284 - INFO - User 'uwagboe99@gmail.com' performed action: login
 2025-04-20 22:40:25,573 - INFO - User 'uwagboe99@gmail.com' performed action: login
 2025-04-20 22:42:54,234 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 22:50:54,472 - INFO - The users.json file was updated to include missing keys.
+2025-04-20 22:57:33,467 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 23:02:20,732 - INFO - User 'uwagboe99@gmail.com' performed action: login
