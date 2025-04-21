@@ -192,7 +192,7 @@ Access the admin panel by logging in with admin credentials to manage:
 2. Click the "Download Admin Stats" button
 3. Stats will be saved as CSV with the current date
 
-![Admin Reports](asset/admin%20panel%20%234.png)
+![Admin Reports](asset/admin%20panel%20%235.png)
 
 ## Data Security
 
