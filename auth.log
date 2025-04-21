@@ -1,0 +1,19 @@
+2025-04-20 22:05:19,771 - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-31' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at C:\Users\uwagb\AppData\Local\Programs\Python\Python38\lib\site-packages\tornado\websocket.py:1086> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "C:\Users\uwagb\AppData\Local\Programs\Python\Python38\lib\site-packages\tornado\websocket.py", line 1088, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\uwagb\AppData\Local\Programs\Python\Python38\lib\site-packages\tornado\websocket.py", line 1090, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError
+2025-04-20 22:32:09,734 - INFO - The users.json file was updated to include missing keys.
+2025-04-20 22:32:36,222 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 22:32:57,372 - ERROR - Error processing file 'basic transactions.csv': name 'filter_and_clean_data' is not defined
+2025-04-20 22:37:55,284 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 22:40:25,573 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 22:42:54,234 - INFO - User 'uwagboe99@gmail.com' performed action: login

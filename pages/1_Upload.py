@@ -6,6 +6,16 @@ data cleaning, and exporting processed data.
 import streamlit as st
 from auth import restrict_access
 from utils import load_user_data, save_user_data
+import pandas as pd
+import logging
+import os  # Add this import for file path handling
+
+# Configure logging
+logging.basicConfig(
+    filename="upload.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Ensure only authenticated users can access this page
 restrict_access()
@@ -23,9 +33,6 @@ if "user" not in st.session_state:
 username = st.session_state["user"]
 data = load_user_data(username)
 
-import pandas as pd
-import numpy as np
-
 # Navigation bar
 col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
@@ -41,12 +48,6 @@ with col3:
         st.switch_page("app.py")
 
 st.divider()
-
-# Check for required dependencies
-try:
-    import xlsxwriter
-except ImportError:
-    st.error("The required library 'xlsxwriter' is not installed. Please install it using 'pip install xlsxwriter'.")
 
 st.title("Upload & Export")
 
@@ -114,48 +115,62 @@ def automatic_column_mapping(data):
     data.rename(columns=mapped_columns, inplace=True)
     return data
 
-def load_uploaded_file(uploaded_file):
+def handle_missing_columns(data, required_columns):
     """
-    Load data from uploaded file based on file extension.
-    Supports multiple file formats including CSV, Excel, JSON, etc.
-    
-    Args:
-        uploaded_file: File object from st.file_uploader
-        
-    Returns:
-        DataFrame: Pandas DataFrame containing the uploaded data
-        
-    Raises:
-        ValueError: If file format is unsupported
+    Ensure all required columns are present in the DataFrame.
+    Adds missing columns with default values.
     """
-    if uploaded_file.name.endswith(".csv"):
-        return pd.read_csv(uploaded_file)
-    elif uploaded_file.name.endswith(".xlsx") or uploaded_file.name.endswith(".xls"):
-        return pd.read_excel(uploaded_file)
-    elif uploaded_file.name.endswith(".json"):
-        return pd.read_json(uploaded_file)
-    elif uploaded_file.name.endswith(".txt"):
-        return pd.read_csv(uploaded_file, delimiter="\t")
-    elif uploaded_file.name.endswith(".parquet"):
-        return pd.read_parquet(uploaded_file)
-    else:
-        raise ValueError("Unsupported file format. Please upload CSV, Excel, JSON, TXT, or Parquet files.")
+    for col in required_columns:
+        if col not in data.columns:
+            data[col] = "Unknown" if col != "Amount" else 0.0
+    return data
+
+def process_uploaded_file(uploaded_file):
+    """
+    Process the uploaded file and return a DataFrame.
+    Handles messy data by filling missing values and standardizing formats.
+    """
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            data = pd.read_csv(uploaded_file)
+        elif uploaded_file.name.endswith((".xlsx", ".xls")):
+            data = pd.read_excel(uploaded_file)
+        elif uploaded_file.name.endswith(".json"):
+            data = pd.read_json(uploaded_file)
+        elif uploaded_file.name.endswith(".txt"):
+            data = pd.read_csv(uploaded_file, delimiter="\t")
+        elif uploaded_file.name.endswith(".parquet"):
+            data = pd.read_parquet(uploaded_file)
+        else:
+            raise ValueError("Unsupported file format. Please upload CSV, Excel, JSON, TXT, or Parquet files.")
+
+        # Standardize column names and handle missing columns
+        data = automatic_column_mapping(data)
+        required_columns = ["Date", "Amount", "Name", "Category"]
+        data = handle_missing_columns(data, required_columns)
+
+        # Fill missing values and clean data
+        data = filter_and_clean_data(data)
+
+        logging.info(f"File '{uploaded_file.name}' uploaded successfully.")
+        return data
+    except Exception as e:
+        logging.error(f"Error processing file '{uploaded_file.name}': {e}")
+        raise ValueError(f"Failed to process file: {e}")
 
 # Handle file upload and processing
 if uploaded_file:
     with st.spinner("Processing your file..."):
         try:
             # Load the file data
-            data = load_uploaded_file(uploaded_file)
+            data = process_uploaded_file(uploaded_file)
 
             # Map columns to standardized format
             data = automatic_column_mapping(data)
 
-            # Validate required columns are present
+            # Validate and handle missing columns
             required_columns = ["Date", "Amount", "Name"]
-            missing_columns = [col for col in required_columns if col not in data.columns]
-            if missing_columns:
-                st.error(f"Missing required columns: {', '.join(missing_columns)}")
+            data = handle_missing_columns(data, required_columns)
 
             # Identify rows with missing values in required columns
             invalid_rows = data[data[required_columns].isnull().any(axis=1)]
@@ -173,8 +188,8 @@ if uploaded_file:
             # Show preview of the data
             st.write("### Preview of Uploaded Data")
             st.dataframe(data)
-        except Exception as e:
-            st.error(f"Error loading file: {e}")
+        except ValueError as e:
+            st.error(str(e))
 
 # Display data summary and cleaning options
 if "transactions" in st.session_state:

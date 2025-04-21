@@ -5,28 +5,25 @@ Handles user registration, login, session management, and access control.
 import streamlit as st
 import json
 import os
-import bcrypt
+from passlib.hash import pbkdf2_sha256
 import re
-import time
-import jsonschema
-from jsonschema import validate
-import hashlib
 from datetime import datetime
+from pathlib import Path
 import logging
+import hashlib  # Add this import to resolve the NameError
+from jsonschema import validate  # Add this import to resolve the NameError
+import time  # Add this import for session_timeout
 
-# Try to import dotenv, but make it optional
-try:
-    from dotenv import load_dotenv
-    # Load environment variables from .env file if it exists
-    load_dotenv()
-except ImportError:
-    # If python-dotenv is not installed, provide a simple fallback
-    def load_dotenv():
-        pass
+# Configure logging
+logging.basicConfig(
+    filename="auth.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Constants for file paths
-USERS_FILE = "users.json"
-SESSION_FILE = "session.json"
+USERS_FILE = Path("users.json")
+SESSION_FILE = Path("session.json")
 
 # Get default admin credentials from environment variables or use placeholders
 DEFAULT_ADMIN_EMAIL = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@example.com")
@@ -38,7 +35,8 @@ DEFAULT_ADMIN_ANSWER = os.getenv("DEFAULT_ADMIN_ANSWER", "blue")
 USER_SCHEMA = {
     "type": "object",
     "patternProperties": {
-        "^[a-zA-Z0-9_]+$": {  # Username as key
+        # Allow email addresses as keys
+        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$": {
             "type": "object",
             "properties": {
                 "email": {"type": "string", "format": "email"},
@@ -46,119 +44,106 @@ USER_SCHEMA = {
                 "secret_question": {"type": "string"},
                 "secret_answer": {"type": "string"},
                 "role": {"type": "string", "enum": ["user", "admin"], "default": "user"},
-                "last_login": {"type": ["number", "null"]},
+                "last_login": {"type": ["string", "number", "null"], "format": "date-time"},
                 "last_ip": {"type": ["string", "null"]},
                 "activity_log": {"type": "array", "items": {"type": "object"}},
-                "login_count": {"type": "number"}
+                "login_count": {"type": "number"},
             },
-            "required": ["email", "password", "secret_question", "secret_answer"]
+            "required": ["email", "password", "secret_question", "secret_answer"],
         }
     },
-    "additionalProperties": False
+    # Allow specific non-email keys like "adminuser"
+    "properties": {
+        "adminuser": {
+            "type": "object",
+            "properties": {
+                "email": {"type": "string", "format": "email"},
+                "password": {"type": "string"},
+                "secret_question": {"type": "string"},
+                "secret_answer": {"type": "string"},
+                "role": {"type": "string", "enum": ["admin"], "default": "admin"},
+                "last_login": {"type": ["string", "number", "null"], "format": "date-time"},
+                "last_ip": {"type": ["string", "null"]},
+                "activity_log": {"type": "array", "items": {"type": "object"}},
+                "login_count": {"type": "number"},
+                "upload_count": {"type": "number"},
+                "registration_date": {"type": "string", "format": "date-time"},
+            },
+            "required": ["email", "password", "secret_question", "secret_answer"],
+        }
+    },
+    "additionalProperties": False,
 }
 
 def load_users():
     """
-    Load user data from users.json file. Creates the file if it doesn't exist.
-    
-    Returns:
-        dict: Dictionary containing user data
+    Load users from the users.json file.
+    Creates an empty file if it doesn't exist or resets it if corrupted.
     """
-    if not os.path.exists(USERS_FILE):
-        with open(USERS_FILE, "w") as f:
+    try:
+        if not USERS_FILE.exists():
+            with USERS_FILE.open("w") as f:
+                json.dump({}, f)
+        with USERS_FILE.open("r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        # Handle corrupted file
+        with USERS_FILE.open("w") as f:
             json.dump({}, f)
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
+        logging.error("The users.json file was corrupted and has been reset.")
+        return {}
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File not found: {USERS_FILE}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error while loading users: {e}")
 
 def save_users(users):
     """
-    Save user data to users.json file.
-    
-    Args:
-        users (dict): Dictionary containing user data to save
+    Save users to the users.json file.
     """
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f)
+    try:
+        with USERS_FILE.open("w") as f:
+            json.dump(users, f, indent=4)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File not found: {USERS_FILE}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error while saving users: {e}")
 
 def validate_users_file():
     """
-    Validate the users.json file against the schema.
-    If validation fails, reset the file to an empty state.
+    Validate the structure of the users.json file.
+    Resets the file if it is corrupted or invalid.
     """
     try:
-        users = load_users()
-        validate(instance=users, schema=USER_SCHEMA)
-    except (jsonschema.exceptions.ValidationError, json.JSONDecodeError):
+        with USERS_FILE.open("r") as f:
+            users = json.load(f)
+            validate(instance=users, schema=USER_SCHEMA)
+    except (json.JSONDecodeError, FileNotFoundError):
+        with USERS_FILE.open("w") as f:
+            json.dump({}, f)
         st.error("The users.json file is corrupted or invalid. Resetting to an empty state.")
-        save_users({})
 
 def hash_password(password):
-    """
-    Create a secure hash of a password using bcrypt.
-    
-    Args:
-        password (str): Plain text password
-        
-    Returns:
-        str: Hashed password
-    """
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return pbkdf2_sha256.hash(password)
 
 def check_password(password, hashed):
-    """
-    Verify a password against its hash.
-    
-    Args:
-        password (str): Plain text password to verify
-        hashed (str): Stored hashed password to check against
-        
-    Returns:
-        bool: True if password matches, False otherwise
-    """
-    return bcrypt.checkpw(password.encode(), hashed.encode())
+    return pbkdf2_sha256.verify(password, hashed)
 
 def authenticate(username, password):
-    """
-    Authenticate a user by checking username and password.
-    
-    Args:
-        username (str): Username to authenticate
-        password (str): Password to verify
-        
-    Returns:
-        bool: True if authentication succeeds, False otherwise
-    """
     users = load_users()
     user = users.get(username)
     if user and "password" in user:
         return check_password(password, user["password"])
     return False
 
-def is_valid_email(email):
+def validate_email(email):
     """
-    Validate email format using regex.
-    
-    Args:
-        email (str): Email to validate
-        
-    Returns:
-        bool: True if email format is valid, False otherwise
+    Validates the format of an email address.
     """
-    pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
-    return re.match(pattern, email)
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return re.match(pattern, email) is not None
 
 def is_strong_password(password):
-    """
-    Check if a password meets security requirements.
-    Password must be at least 8 characters and include uppercase, 
-    lowercase, digit, and special character.
-    
-    Args:
-        password (str): Password to check
-        
-    Returns:
-        bool: True if password is strong, False otherwise
-    """
     return (
         len(password) >= 8 and
         any(c.isupper() for c in password) and
@@ -167,142 +152,119 @@ def is_strong_password(password):
         any(c in "!@#$%^&*()_+-=" for c in password)
     )
 
-# Whether to allow new user registration
 ALLOW_SIGNUP = True
 
 def signup():
-    """
-    Handle user registration with form validation.
-    Creates a new user account when all validations pass.
+    st.subheader("Sign Up")
+    if "signup_email" not in st.session_state:
+        st.session_state.signup_email = ""
+    if "signup_password" not in st.session_state:
+        st.session_state.signup_password = ""
+    if "signup_confirm_password" not in st.session_state:
+        st.session_state.signup_confirm_password = ""
+    if "signup_secret_answer" not in st.session_state:
+        st.session_state.signup_secret_answer = ""
+
+    email = st.text_input("Enter Your Email", value=st.session_state.signup_email, key="signup_email").strip()
+    password = st.text_input("Choose a Password", type="password", value=st.session_state.signup_password, key="signup_password").strip()
+    confirm_password = st.text_input("Confirm Password", type="password", value=st.session_state.signup_confirm_password, key="signup_confirm_password").strip()
     
-    Returns:
-        bool: True if registration was successful, False otherwise
-    """
-    if not ALLOW_SIGNUP:
-        st.warning("Signups are currently disabled. Please contact the administrator.")
-        return False
+    common_questions = [
+        "What is your mother's maiden name?",
+        "What was the name of your first pet?",
+        "What was the make of your first car?",
+        "What is your favorite book?",
+        "What is your favorite movie?",
+        "What is your favorite food?",
+        "What city were you born in?",
+        "What is your favorite color?",
+        "What is your father's middle name?",
+        "What was the name of your elementary school?",
+        "What is your favorite sports team?",
+        "What is your childhood nickname?"
+    ]
+    secret_question = st.selectbox("Choose a Secret Question", common_questions)
+    secret_answer = st.text_input("Answer Your Secret Question", value=st.session_state.signup_secret_answer, key="signup_secret_answer").strip()
+    
+    all_fields_filled = all([email, password, confirm_password, secret_question, secret_answer])
+    signup_button = st.button("Sign Up", disabled=not all_fields_filled)
 
-    with st.form("Signup Form", clear_on_submit=False):
-        st.subheader("📝 Sign Up")
-        account_type = st.radio("Choose Account Type", ["User", "Admin"], horizontal=True)
-        username = st.text_input("Choose a Username")
-        email = st.text_input("Enter Your Email")
-        secret_question = st.text_input("Set a Secret Question (e.g., Your pet's name?)")
-        secret_answer = st.text_input("Answer Your Secret Question")
-        password = st.text_input("Choose a Password", type="password")
-        confirm_password = st.text_input("Confirm Password", type="password")
-        submitted = st.form_submit_button("Sign Up")
+    if signup_button:
+        if not email or not password or not confirm_password or not secret_question or not secret_answer:
+            st.error("All fields are required. Please fill in all fields.")
+            return
+        if password != confirm_password:
+            st.error("Passwords do not match. Please try again.")
+            return
+        if not validate_email(email):
+            st.error("Invalid email format. Please enter a valid email.")
+            return
+        if not is_strong_password(password):
+            st.error("Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.")
+            return
 
-        if submitted:
-            # Validate email format
-            EMAIL_REGEX = r"^[\w\.-]+@[\w\.-]+\.\w+$"
-            if not re.match(EMAIL_REGEX, email):
-                st.error("Invalid email format.")
-                return
-                
-            # Check if email already exists
-            users = load_users()
-            if any(user["email"] == email for user in users.values()):
-                st.error("Email already registered.")
-                return
-                
-            # Additional email validation
-            if not is_valid_email(email):
-                st.error("Invalid email format. Please enter a valid email.")
-                return False
-                
-            # Password strength check
-            if not is_strong_password(password):
-                st.error("Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.")
-                return False
-                
-            # Check if username exists
-            if username in users or any(user.get("email") == email for user in users.values()):
-                st.error("Username or email already exists. Please choose a different one.")
-            elif password != confirm_password:
-                st.error("Passwords do not match. Please try again.")
-            else:
-                # Create new user with hashed password and secret answer
-                hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-                users[username] = {
-                    "email": email,
-                    "password": hashed_password,
-                    "secret_question": secret_question,
-                    "secret_answer": hash_answer(secret_answer),
-                    "role": account_type.lower(),
-                    "last_login": None,
-                    "last_ip": None,
-                    "registration_date": datetime.now().isoformat()
-                }
-                save_users(users)
-                st.success("Registration successful! You can now log in.")
-                return True
-    return False
+        users = load_users()
+        if any(user.get("email") == email for user in users.values()):
+            st.error("Email already exists. Please choose a different one.")
+            return
+
+        hashed_password = hash_password(password)
+        new_user = {
+            "email": email,
+            "password": hashed_password,
+            "secret_question": secret_question,
+            "secret_answer": hash_answer(secret_answer)
+        }
+        users[email] = new_user
+        save_users(users)
+        st.success("Signup successful! You can now log in.")
+        # Clear all session state variables
+        st.session_state.clear()
 
 def hash_answer(answer):
-    """
-    Hash a secret answer using SHA-256 for secure storage.
-    
-    Args:
-        answer (str): Plain text secret answer
-        
-    Returns:
-        str: Hashed secret answer
-    """
     return hashlib.sha256(answer.encode()).hexdigest()
 
 def reset_password():
-    """
-    Handle password reset flow using secret question/answer verification.
-    """
     with st.form("Reset Password Form", clear_on_submit=False):
         st.subheader("🔑 Reset Password")
         username = st.text_input("Enter Your Username")
         submitted_username = st.form_submit_button("Fetch Secret Question")
 
-        # Step 1: Fetch the secret question for the username
         if submitted_username:
             users = load_users()
             user = users.get(username)
             if not user:
                 st.error("No account found with this username.")
-                st.stop()
+                return  # Avoid `st.stop()`
             question = user.get("secret_question", "Secret Question")
             st.session_state["secret_question"] = question
 
-        # Display the secret question if available
         question = st.session_state.get("secret_question", "")
         if question:
             st.text(f"Your Secret Question: {question}")
-
-        # Step 2: Verify answer and allow password reset
+    with st.form("Reset Password Form", clear_on_submit=False):
         secret_answer = st.text_input("Answer Your Secret Question")
         new_password = st.text_input("Enter New Password", type="password")
         confirm_new_password = st.text_input("Confirm New Password", type="password")
         submitted = st.form_submit_button("Reset Password")
-
         if submitted:
             users = load_users()
             user = users.get(username)
             if not user:
                 st.error("No account found with this username.")
+                return  # Avoid `st.stop()`
             elif user.get("secret_answer") != hash_answer(secret_answer):
                 st.error("Incorrect answer to the secret question.")
             elif new_password != confirm_new_password:
                 st.error("Passwords do not match. Please try again.")
             else:
-                # Update the password with a new hash
-                hashed_password = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+                hashed_password = hash_password(new_password)
                 users[username]["password"] = hashed_password
                 save_users(users)
                 st.success("Password reset successful! You can now log in.")
 
 def session_timeout():
-    """
-    Check if the user session has timed out due to inactivity.
-    Logs out the user if timeout duration has been exceeded.
-    """
-    timeout_duration = 600  # 10 minutes in seconds
+    timeout_duration = 600
     last_active = st.session_state.get("last_active", time.time())
     if time.time() - last_active > timeout_duration:
         logout()
@@ -311,55 +273,80 @@ def session_timeout():
     else:
         st.session_state["last_active"] = time.time()
 
-def login_user():
+def login(role="user"):
     """
-    Handle regular user login.
-    
-    Returns:
-        bool: True if login was successful, False otherwise
+    Generalized login function for both users and admins.
     """
-    st.subheader("🔐 User Login")
-    return login(role="user")
+    st.subheader(f"🔐 {role.capitalize()} Login")
+    users = load_users()
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    login_btn = st.button("Login")
+    last_active = st.session_state.get("last_active", time.time())
+    if "failed_attempts" not in st.session_state:
+        st.session_state["failed_attempts"] = 0
+    if st.session_state["failed_attempts"] >= 5:
+        st.error("Too many failed login attempts. Try again later.")
+        return False
+    if login_btn:
+        user = next((u for u, creds in users.items() if creds["email"] == email), None)
+        if user:
+            creds = users[user]
+            if check_password(password, creds["password"]):
+                if creds.get("role") == role or role == "user":  # Allow user role to log in without strict matching
+                    st.success(f"Welcome, {user}!")
+                    st.session_state["user"] = user
+                    st.session_state["role"] = creds["role"]
+                    st.session_state["authenticated"] = True
+                    st.session_state["auth_status"] = True
+                    st.session_state["failed_attempts"] = 0  # Reset on success
+                    log_user_activity(user, "login")
+                    users[user]["last_login"] = datetime.now().isoformat()
+                    users[user]["last_ip"] = "127.0.0.1"  # Replace with actual IP retrieval logic
+                    save_users(users)
+                    save_session_state()
+                    return True
+                else:
+                    st.error("Wrong role for this account.")
+                    return False
+            else:
+                st.session_state["failed_attempts"] += 1
+                st.error("Incorrect password.")
+                return False
+        st.error("Email not found.")
+        st.session_state["failed_attempts"] += 1
+    return False
 
-def login_admin():
+def initialize_session_state():
     """
-    Handle admin user login.
-    
-    Returns:
-        bool: True if login was successful, False otherwise
+    Initialize session state variables if they don't exist.
     """
-    st.subheader("🛡️ Admin Login")
-    return login(role="admin")
+    default_values = {
+        "authenticated": False,
+        "user": None,
+        "role": None,
+        "auth_status": False,
+        "last_active": None,
+    }
+    for key, value in default_values.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
-# Initialize session state variables
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-if "user" not in st.session_state:
-    st.session_state["user"] = None
-if "role" not in st.session_state:
-    st.session_state["role"] = None
-if "auth_status" not in st.session_state:
-    st.session_state["auth_status"] = False
+initialize_session_state()
 
 def save_session_state():
-    """
-    Save the current session state to a file for persistence.
-    """
     session_data = {
         "user": st.session_state.get("user"),
         "role": st.session_state.get("role"),
         "authenticated": st.session_state.get("authenticated", False),
         "auth_status": st.session_state.get("auth_status", False)
     }
-    with open(SESSION_FILE, "w") as f:
+    with SESSION_FILE.open("w") as f:
         json.dump(session_data, f)
 
 def load_session_state():
-    """
-    Load the session state from a file, if available.
-    """
     try:
-        with open(SESSION_FILE, "r") as f:
+        with SESSION_FILE.open("r") as f:
             session_data = json.load(f)
             st.session_state["user"] = session_data.get("user")
             st.session_state["role"] = session_data.get("role")
@@ -372,152 +359,76 @@ def load_session_state():
         st.session_state["role"] = None
 
 def clear_session_state():
-    """
-    Clear the session state and remove the session file.
-    Used during logout.
-    """
     st.session_state.clear()
     try:
-        os.remove(SESSION_FILE)
+        SESSION_FILE.unlink()
     except FileNotFoundError:
         pass
 
-# Load session state on module import
 load_session_state()
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def login(role="user"):
+def log_user_activity(username, action):
     """
-    Handle user login with email and password.
-    Validates credentials and sets up session state.
-    
-    Args:
-        role (str): Role to authenticate for ('user' or 'admin')
-        
-    Returns:
-        bool: True if login was successful, False otherwise
-    """
-    users = load_users()
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-    login_btn = st.button("Login")
-
-    if login_btn:
-        logging.debug(f"Attempting login for email: {email}")
-        for user, creds in users.items():
-            if creds["email"] == email:
-                logging.debug(f"Email found for user: {user}")
-                if check_password(password, creds["password"]):
-                    # Check if user has the required role
-                    if creds.get("role") == role:
-                        st.success(f"Welcome, {user}!")
-                        st.session_state["user"] = user
-                        st.session_state["role"] = creds.get("role")
-                        st.session_state["authenticated"] = True
-                        st.session_state["auth_status"] = True
-                        
-                        # Record login activity
-                        log_user_activity(user, "login")
-                        
-                        # Update last login timestamp
-                        users[user]["last_login"] = datetime.now().isoformat()
-                        save_users(users)
-                        
-                        save_session_state()
-                        return True
-                    else:
-                        st.error("Invalid role for this account. Please check your login type.")
-                        return False
-                else:
-                    logging.debug("Password mismatch.")
-                    st.error("Invalid credentials. Please check your email and password.")
-                    return False
-        logging.debug("Email not found in users.json.")
-        st.error("Invalid credentials. Please check your email and password.")
-    return False
-
-def log_user_activity(username, action_type):
-    """
-    Log user activity for analytics and tracking.
-    
-    Args:
-        username (str): Username to log activity for
-        action_type (str): Type of activity (login, upload, etc.)
-        
-    Returns:
-        bool: True if activity was logged successfully, False otherwise
+    Logs user activity with a timestamp and writes to a log file.
     """
     users = load_users()
     if username in users:
-        # Initialize activity log if it doesn't exist
         if "activity_log" not in users[username]:
             users[username]["activity_log"] = []
-            
-        # Add new activity with timestamp
         users[username]["activity_log"].append({
-            "action": action_type,
+            "action": action,
             "timestamp": datetime.now().isoformat()
         })
-        
-        # Update counter for specific action type
-        counter_key = f"{action_type}_count"
+        counter_key = f"{action}_count"
         if counter_key not in users[username]:
             users[username][counter_key] = 0
         users[username][counter_key] += 1
-        
         save_users(users)
+        logging.info(f"User '{username}' performed action: {action}")
         return True
+    logging.warning(f"Attempted to log activity for non-existent user: {username}")
     return False
 
 def logout():
     """
-    Log out the current user and clear session state.
+    Logs out the current user by clearing the session state and halting the script.
     """
     clear_session_state()
     st.success("You have been logged out.")
+    st.stop()  # Halt the script to force a rerun
 
 def is_authenticated():
-    """
-    Check if the user is authenticated and session is valid.
-    Shows warning and stops execution if not authenticated.
-    """
     if not st.session_state.get('auth_status'):
         st.warning("You must log in to access this page.")
         st.stop()
     session_timeout()
 
 def restrict_access():
-    """
-    Restrict access to authenticated users only.
-    Stops page execution if user is not authenticated.
-    """
     if not st.session_state.get('auth_status'):
         st.warning("You must log in to access this page.")
         st.stop()
 
 def require_admin():
-    """
-    Restrict access to admin users only.
-    Stops page execution if user is not an admin.
-    """
     if st.session_state.get("role") != "admin":
         st.warning("Admins only. You don't have access to this page.")
         st.stop()
 
 def ensure_default_admin():
     """
-    Ensure a default admin account exists.
-    Creates one if no admin user is found.
+    Ensure the default admin user exists in the users.json file with the specified credentials.
     """
     users = load_users()
-    if "adminuser" not in users:
+    admin_email = "admin@example.com"
+    admin_password = "Admin@123456"
+    admin_hashed_password = hash_password(admin_password)
+    admin_hashed_answer = hash_answer("blue")  # Default secret answer
+
+    if "adminuser" not in users or users["adminuser"]["email"] != admin_email:
         users["adminuser"] = {
-            "email": DEFAULT_ADMIN_EMAIL,
-            "password": hash_password(DEFAULT_ADMIN_PASSWORD),
-            "secret_question": DEFAULT_ADMIN_QUESTION,
-            "secret_answer": hash_answer(DEFAULT_ADMIN_ANSWER),
+            "email": admin_email,
+            "password": admin_hashed_password,
+            "secret_question": "Your favorite color?",
+            "secret_answer": admin_hashed_answer,
             "role": "admin",
             "last_login": None,
             "last_ip": None,
@@ -526,19 +437,43 @@ def ensure_default_admin():
             "upload_count": 0,
             "registration_date": datetime.now().isoformat()
         }
+    else:
+        # Ensure the admin credentials are always updated
+        users["adminuser"]["password"] = admin_hashed_password
+        users["adminuser"]["secret_question"] = "Your favorite color?"
+        users["adminuser"]["secret_answer"] = admin_hashed_answer
+    save_users(users)
+
+def validate_users():
+    """
+    Validate all user entries in the users.json file and ensure required keys are present.
+    """
+    users = load_users()
+    updated = False
+
+    for username, user_data in users.items():
+        # Ensure the "role" key is present
+        if "role" not in user_data:
+            user_data["role"] = "user"  # Default role
+            updated = True
+
+    if updated:
         save_users(users)
+        logging.info("The users.json file was updated to include missing keys.")
 
 def validate_user_hashes():
     """
-    Validate the password hashes in the users database.
-    For debugging purposes.
+    Validates the integrity of user password and secret answer hashes.
+    Logs any inconsistencies.
     """
     users = load_users()
     for username, user_data in users.items():
-        logging.debug(f"Validating user: {username}")
-        # Don't validate with hardcoded passwords
-        pass
+        if username == "adminuser":
+            if not pbkdf2_sha256.verify(DEFAULT_ADMIN_PASSWORD, user_data["password"]):
+                logging.warning(f"Password hash mismatch for default admin")
+            if hash_answer(DEFAULT_ADMIN_ANSWER) != user_data["secret_answer"]:
+                logging.warning(f"Secret answer hash mismatch for default admin")
 
-# Initialize admin account and validate users file
 ensure_default_admin()
 validate_users_file()
+validate_users()  # Ensure all user entries are valid

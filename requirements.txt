@@ -1,8 +1,8 @@
-streamlit
-pandas
-bcrypt
-jsonschema
-python-dotenv
-plotly
-altair
-xlsxwriter
+streamlit>=1.25.0  # Ensure the version supports st.switch_page
+pandas==1.5.3
+jsonschema==4.17.3
+passlib==1.7.4
+plotly==5.15.0
+altair==4.2.2
+xlsxwriter==3.1.2
+filelock==3.12.2  # Ensure this is included

@@ -11,6 +11,7 @@ A comprehensive financial management application built with Streamlit for tracki
 - [Why Expense Tracker?](#why-expense-tracker)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
 - [User Guide](#user-guide)
 - [Admin Guide](#admin-guide)
 - [Data Security](#data-security)
@@ -90,6 +91,11 @@ Expense Tracker bridges this gap by providing:
 
 4. Edit the `.env` file with secure credentials for production use.
 
+5. Run the application:
+   ```bash
+   streamlit run app.py
+   ```
+
 ## Usage
 
 ### Running the Application
@@ -107,6 +113,28 @@ This will launch the application on `http://localhost:8501` by default.
 For initial setup, use these credentials (remember to change them in production):
 - **Email**: admin@example.com
 - **Password**: Admin@123
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Missing Dependencies**:
+   - Ensure all dependencies are installed using `pip install -r requirements.txt`.
+
+2. **Corrupted `users.json` File**:
+   - Delete the `users.json` file and restart the application. It will regenerate an empty file.
+
+3. **Port Already in Use**:
+   - Use a different port by running:
+     ```bash
+     streamlit run app.py --server.port=8502
+     ```
+
+4. **File Upload Errors**:
+   - Ensure the uploaded file is in a supported format (CSV, Excel, JSON, TXT, or Parquet).
+
+5. **Session Timeout**:
+   - Log in again if your session times out after inactivity.
 
 ## User Guide
 

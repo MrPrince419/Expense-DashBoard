@@ -5,7 +5,7 @@ Allows users to edit transactions and view spending patterns.
 """
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.express as px  # Add this import for visualizations
 from auth import restrict_access
 from utils import load_user_data, save_user_data
 
@@ -37,12 +37,27 @@ with col3:
 
 st.divider()
 
+# Function to ensure required columns exist
+def ensure_columns_exist(data, required_columns):
+    """
+    Ensure all required columns exist in the DataFrame.
+    Adds missing columns with default values.
+    """
+    for col in required_columns:
+        if col not in data.columns:
+            data[col] = "Unknown" if col != "Amount" else 0.0
+    return data
+
 # Load the current user's data
 username = st.session_state["user"]
 data = load_user_data(username)
 
+# Ensure required columns exist
+required_columns = ["Date", "Amount", "Name", "Type", "Category"]
+data = ensure_columns_exist(data, required_columns)
+
 # Check if there's data to display
-if "transactions" not in st.session_state:
+if data.empty:
     st.warning("No data uploaded yet. Please upload your financial data on the Upload page.")
     st.stop()
 
@@ -52,16 +67,21 @@ st.subheader("Key Metrics")
 def calculate_metrics():
     """
     Calculate key financial metrics from transaction data.
-    
+    Handles missing or inconsistent data gracefully.
     Returns:
         tuple: (total_income, total_expenses, net_savings)
     """
-    if "Type" not in st.session_state["transactions"].columns:
+    transactions = st.session_state.get("transactions", pd.DataFrame())
+    if transactions.empty or "Type" not in transactions.columns or "Amount" not in transactions.columns:
         return 0, 0, 0
-        
-    # Calculate total income, expenses, and savings
-    total_income = st.session_state["transactions"].query("Type == 'Income'")["Amount"].sum()
-    total_expenses = st.session_state["transactions"].query("Type == 'Expense'")["Amount"].sum()
+
+    # Fill missing values in 'Type' and 'Amount' columns
+    transactions["Type"] = transactions["Type"].fillna("Unknown")
+    transactions["Amount"] = transactions["Amount"].fillna(0.0)
+
+    grouped = transactions.groupby("Type")["Amount"].sum()
+    total_income = grouped.get("Income", 0)
+    total_expenses = grouped.get("Expense", 0)
     net_savings = total_income - total_expenses
     return total_income, total_expenses, net_savings
 
@@ -129,8 +149,14 @@ st.subheader("Visualizations")
 # Income vs Expense chart
 st.write("### Income vs Expense")
 if "Type" in st.session_state["transactions"].columns and "Date" in st.session_state["transactions"].columns:
+    # Aggregate data by month for large datasets
+    transactions = st.session_state["transactions"]
+    transactions["Date"] = pd.to_datetime(transactions["Date"])
+    aggregated_data = transactions.groupby([transactions["Date"].dt.to_period("M"), "Type"])["Amount"].sum().reset_index()
+    aggregated_data["Date"] = aggregated_data["Date"].astype(str)
+
     line_chart = px.line(
-        st.session_state["transactions"],
+        aggregated_data,
         x="Date",
         y="Amount",
         color="Type",

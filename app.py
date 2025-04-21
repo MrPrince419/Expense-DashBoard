@@ -1,75 +1,123 @@
 """
 Main entry point for the Expense Tracker application.
-Handles login, signup, and main navigation for the application.
+Handles login, signup, forgot password, and main navigation for the application.
 This file serves as the landing page and manages user authentication state.
 """
 import streamlit as st
-from auth import login_user, login_admin, signup, logout, load_users
+import json
+from auth import signup, logout, initialize_session_state, login, reset_password, hash_password, load_users, save_users, hash_answer
 from utils import load_user_data, save_user_data
 
-# Configure the Streamlit page with title, icon and layout
 st.set_page_config(page_title="Expense Tracker", page_icon="💰", layout="wide")
 
 st.title("💼 Welcome to Expense Tracker")
 st.markdown("Easily track your income, expenses, and more.")
 
-# Initialize session state variables if they don't exist
-if "user" not in st.session_state:
-    st.session_state["user"] = None
-if "role" not in st.session_state:
-    st.session_state["role"] = None
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-if "auth_status" not in st.session_state:
-    st.session_state["auth_status"] = False
+# Initialize session state
+initialize_session_state()
 
-# Authentication flow: Show login/signup if not authenticated
+def forgot_password():
+    st.subheader("Forgot Password")
+
+    # Initialize session state variables
+    if "fp_email_verified" not in st.session_state:
+        st.session_state.fp_email_verified = False
+    if "fp_verified_user" not in st.session_state:
+        st.session_state.fp_verified_user = None
+
+    # Email entry step
+    if not st.session_state.fp_email_verified:
+        email = st.text_input("Enter your email").strip()
+        if st.button("Verify Email"):
+            users = load_users()
+            user = next((u for u in users.values() if u["email"] == email), None)
+            if not user:
+                st.error("Email does not exist.")
+                return
+            st.session_state.fp_verified_user = user
+            st.session_state.fp_email_verified = True
+            st.success("Email verified. Please answer your secret question.")
+    
+    # Secret question and password reset step
+    if st.session_state.fp_email_verified and st.session_state.fp_verified_user:
+        user = st.session_state.fp_verified_user
+        secret_question = user.get("secret_question", "Secret Question")
+        st.text(f"Your Secret Question: {secret_question}")
+        secret_answer = st.text_input("Answer Your Secret Question").strip()
+        new_password = st.text_input("Enter New Password", type="password").strip()
+        confirm_new_password = st.text_input("Confirm New Password", type="password").strip()
+
+        if st.button("Reset Password"):
+            if hash_answer(secret_answer) != user.get("secret_answer"):
+                st.error("Incorrect answer to the secret question.")
+                return
+            if new_password != confirm_new_password:
+                st.error("Passwords do not match. Please try again.")
+                return
+            user["password"] = hash_password(new_password)
+            users = load_users()
+            for k, v in users.items():
+                if v["email"] == user["email"]:
+                    users[k] = user
+                    break
+            save_users(users)
+            st.success("Password reset successful! You can now log in.")
+            st.session_state.fp_email_verified = False
+            st.session_state.fp_verified_user = None
+
 if not st.session_state.get("authenticated"):
-    # Create tabs for login and signup
-    tabs = st.tabs(["Login", "Sign Up"])
+    tabs = st.tabs(["Login", "Sign Up", "Forgot Password"])
 
-    # Login tab functionality
+    # Login Tab
     with tabs[0]:
-        # Radio button to choose login type (user or admin)
-        login_choice = st.radio("Choose Login Type", ["User", "Admin"], horizontal=True)
+        login_choice = st.selectbox("Choose Login Type", ["User", "Admin"])
 
-        # User login form and handler
         if login_choice == "User":
-            if login_user():
-                # Set session state after successful login
+            if login(role="user"):
                 st.session_state["authenticated"] = True
                 st.session_state["auth_status"] = True
                 st.session_state["role"] = "user"
-                # Redirect to the upload page
-                st.switch_page("pages/1_Upload.py")
-        # Admin login form and handler
+                try:
+                    st.switch_page("pages/1_Upload.py")
+                except AttributeError:
+                    st.warning("Navigation is not supported in this version of Streamlit. Please update Streamlit.")
         elif login_choice == "Admin":
-            if login_admin():
-                # Set session state after successful admin login
+            if login(role="admin"):
                 st.session_state["authenticated"] = True
                 st.session_state["auth_status"] = True
                 st.session_state["role"] = "admin"
-                # Redirect to the admin panel
-                st.switch_page("pages/admin_panel.py")
+                try:
+                    st.switch_page("pages/admin_panel.py")
+                except AttributeError:
+                    st.warning("Navigation is not supported in this version of Streamlit. Please update Streamlit.")
 
-    # Signup tab functionality
+        st.markdown("**Tip:** If you've forgotten your password, head over to the [Forgot Password](#) section.")
+
+    # Signup Tab
     with tabs[1]:
         signup()
-# If already authenticated, show welcome message and navigation options
+
+    # Forgot Password Tab
+    with tabs[2]:
+        forgot_password()
+
 else:
-    # Welcome message with username
     st.success(f"Welcome back, {st.session_state.get('user', 'User')}!")
     
-    # Navigation buttons to main pages
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Go to Upload Page"):
-            st.switch_page("pages/1_Upload.py")
+            try:
+                st.switch_page("pages/1_Upload.py")
+            except AttributeError:
+                st.warning("Navigation is not supported in this version of Streamlit. Please update Streamlit.")
     with col2:
         if st.button("Go to Dashboard"):
-            st.switch_page("pages/2_Dashboard.py")
+            try:
+                st.switch_page("pages/2_Dashboard.py")
+            except AttributeError:
+                st.warning("Navigation is not supported in this version of Streamlit. Please update Streamlit.")
     
-    # Sign out button
     if st.button("Sign Out", type="primary"):
-        logout()
-        st.rerun()
+        logout()  # Immediately sign out the user/admin
+        st.stop()  # Halt the script and force a rerun
