@@ -20,3 +20,129 @@ tornado.websocket.WebSocketClosedError
 2025-04-20 22:50:54,472 - INFO - The users.json file was updated to include missing keys.
 2025-04-20 22:57:33,467 - INFO - User 'uwagboe99@gmail.com' performed action: login
 2025-04-20 23:02:20,732 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 23:03:01,029 - ERROR - Error processing file 'basic transactions.csv': name 'filter_and_clean_data' is not defined
+2025-04-20 23:05:57,953 - INFO - File 'basic transactions.csv' uploaded successfully.
+2025-04-20 23:05:57,961 - INFO - User 'uwagboe99@gmail.com' performed action: upload
+2025-04-20 23:16:28,306 - INFO - File 'basic transactions.csv' uploaded successfully.
+2025-04-20 23:16:50,071 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 23:18:52,639 - INFO - File 'basic transactions.csv' uploaded successfully.
+2025-04-20 23:21:39,378 - INFO - File 'basic transactions.csv' uploaded successfully.
+2025-04-20 23:22:02,496 - INFO - File 'basic transactions.csv' uploaded successfully.
+2025-04-20 23:22:13,516 - INFO - File 'basic transactions.csv' uploaded successfully.
+2025-04-20 23:33:19,187 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-20 23:33:23,376 - ERROR - File processing failed: No columns to parse from file
+2025-04-20 23:39:10,607 - INFO - Processed upload: basic transactions.csv
+2025-04-20 23:43:08,213 - INFO - Processed upload: basic transactions.csv
+2025-04-20 23:46:40,149 - INFO - Processed upload: basic transactions.csv
+2025-04-20 23:51:04,832 - INFO - Processed upload: basic transactions.csv
+2025-04-20 23:56:22,321 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:04:40,765 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:21:44,584 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:46:38,852 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:46:43,545 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:47:54,042 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:47:55,111 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:47:55,563 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:47:55,999 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:47:56,493 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:47:56,710 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:12,004 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:12,013 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:27,475 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:27,479 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:28,593 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:28,598 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:30,328 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:30,332 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:30,946 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:30,953 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:31,665 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:31,672 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:32,743 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:32,747 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:33,392 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:33,397 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:34,525 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:34,534 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:36,574 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:36,580 - INFO - Processed upload: basic transactions.csv
+2025-04-21 00:58:37,435 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 00:58:37,440 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:14:09,114 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:14:09,119 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:14:14,749 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:14:14,754 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:14:15,856 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:14:15,862 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:22:56,012 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-21 01:23:54,775 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:23:54,783 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:25:13,428 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-21 01:25:19,641 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:25:19,645 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:25:23,338 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:25:23,344 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:25:24,306 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:25:24,313 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:25:26,028 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:25:26,034 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:25:26,504 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:25:26,509 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:26:26,330 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:26:26,337 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:26:27,692 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:26:27,696 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:26:27,885 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:26:27,891 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:26:28,094 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:26:28,100 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:26:28,364 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:26:28,371 - INFO - Processed upload: basic transactions.csv
+2025-04-21 01:26:29,367 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 01:26:29,370 - INFO - Processed upload: basic transactions.csv
+2025-04-21 13:25:56,729 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 13:25:56,736 - INFO - Processed upload: basic transactions.csv
+2025-04-21 13:27:55,214 - INFO - Added placeholder Date column to dataset with only Name and Amount
+2025-04-21 13:27:55,222 - INFO - Processed upload: basic transactions.csv
+2025-04-21 13:42:31,889 - ERROR - File processing failed: 'UploadedFile' object has no attribute '_file'
+2025-04-21 13:43:58,108 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-21 13:44:08,929 - ERROR - File processing failed: 'UploadedFile' object has no attribute '_file'
+2025-04-21 14:03:49,013 - INFO - Created missing Date column with today's date
+2025-04-21 14:03:49,014 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 14:03:49,021 - INFO - Processed upload: basic transactions.csv
+2025-04-21 14:04:02,247 - INFO - Processed upload: messy transactions.csv
+2025-04-21 14:38:58,466 - INFO - Pandas backend loaded 2.0.3
+2025-04-21 14:38:58,485 - INFO - Numpy backend loaded 1.24.4
+2025-04-21 14:38:58,485 - INFO - Pyspark backend NOT loaded
+2025-04-21 14:38:58,485 - INFO - Python backend loaded
+2025-04-21 14:39:06,856 - INFO - Created missing Date column with today's date
+2025-04-21 14:39:06,856 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 14:39:06,866 - INFO - Processed upload: basic transactions.csv
+2025-04-21 14:39:15,340 - INFO - Created missing Date column with today's date
+2025-04-21 14:39:15,341 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 14:39:15,348 - INFO - Processed upload: basic transactions.csv
+2025-04-21 14:40:06,673 - INFO - Created missing Date column with today's date
+2025-04-21 14:40:06,674 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 14:40:06,682 - INFO - Processed upload: basic transactions.csv
+2025-04-21 14:40:10,821 - INFO - Created missing Date column with today's date
+2025-04-21 14:40:10,822 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 14:40:10,828 - INFO - Processed upload: basic transactions.csv
+2025-04-21 15:05:14,231 - INFO - Processed upload: messy transactions.csv
+2025-04-21 15:10:12,266 - INFO - Pandas backend loaded 2.0.3
+2025-04-21 15:10:12,276 - INFO - Numpy backend loaded 1.24.4
+2025-04-21 15:10:12,277 - INFO - Pyspark backend NOT loaded
+2025-04-21 15:10:12,277 - INFO - Python backend loaded
+2025-04-21 15:10:18,730 - INFO - Created missing Date column with today's date
+2025-04-21 15:10:18,731 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 15:10:18,742 - INFO - Processed upload: basic transactions.csv
+2025-04-21 15:19:07,426 - INFO - User 'uwagboe99@gmail.com' performed action: login
+2025-04-21 15:19:13,212 - INFO - Created missing Date column with today's date
+2025-04-21 15:19:13,212 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 15:19:13,220 - INFO - Processed upload: basic transactions.csv
+2025-04-21 15:19:23,289 - INFO - Created missing Date column with today's date
+2025-04-21 15:19:23,290 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 15:19:23,296 - INFO - Processed upload: basic transactions.csv
+2025-04-21 15:19:26,037 - INFO - Created missing Date column with today's date
+2025-04-21 15:19:26,038 - INFO - Created missing Category column with default value 'Unknown'
+2025-04-21 15:19:26,044 - INFO - Processed upload: basic transactions.csv
+2025-04-21 15:21:28,702 - INFO - User 'uwagboe99@gmail.com' performed action: login

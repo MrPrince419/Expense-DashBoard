@@ -1,0 +1,28 @@
+Date,Name,Category,Amount,Type
+2025-04-14,Movie Night,Entertainment,20.0,Expense
+2025-04-07,Streaming Service,Entertainment,12.99,Expense
+2025-02-10,Concert Tickets,Entertainment,100.0,Expense
+2025-01-08,Netflix Subscription,Entertainment,15.99,Expense
+2025-04-15,Lunch with Colleagues,Food,25.5,Expense
+2025-04-05,Groceries,Food,95.3,Expense
+2025-03-09,Coffee with Friends,Food,12.6,Expense
+2025-03-03,Groceries,Food,88.75,Expense
+2025-01-15,Dinner at Restaurant,Food,45.2,Expense
+2025-01-05,Grocery Shopping,Food,75.5,Expense
+2025-04-12,Freelance Payment,Income,600.0,Income
+2025-04-01,Salary,Income,2500.0,Income
+2025-03-12,Freelance Project,Income,450.0,Income
+2025-03-01,Salary,Income,2500.0,Income
+2025-02-03,Bonus,Income,300.0,Income
+2025-01-12,Freelance Payment,Income,800.0,Income
+2025-01-03,Salary,Income,2500.0,Income
+2025-02-01,Monthly Rent,Rent,900.0,Expense
+2025-03-25,Gift for Friend,Shopping,75.0,Expense
+2025-02-12,New Shoes,Shopping,120.0,Expense
+2025-03-20,Car Maintenance,Transportation,300.0,Expense
+2025-03-06,Uber Ride,Transportation,22.4,Expense
+2025-02-05,Bus Pass,Transportation,40.0,Expense
+2025-04-10,Water Bill,Utilities,30.0,Expense
+2025-03-15,Electric Bill,Utilities,58.9,Expense
+2025-02-18,Internet Bill,Utilities,50.0,Expense
+2025-01-10,Electricity Bill,Utilities,60.0,Expense

@@ -27,20 +27,15 @@ Expense Tracker is a web-based application that helps individuals and small busi
 
 ### User Features
 - **Multi-format Data Import**: Upload financial data in CSV, Excel, JSON, TXT, or Parquet formats
-- **Automatic Column Mapping**: Smart recognition and standardization of column names
+- **User Authentication**: Secure login, signup, and password recovery system
 - **Interactive Dashboard**: Visualize spending patterns, income vs. expenses, and category breakdowns
-- **Data Cleaning Tools**: Remove duplicates and handle missing values
-- **Export Capabilities**: Download filtered data in CSV or Excel formats
-- **Transaction Management**: Add, edit, and categorize transactions
-- **Monthly Trend Analysis**: Track spending patterns over time
+- **Data Management**: Store and retrieve transaction data across sessions
+- **Profile Management**: User-specific data storage and retrieval
 
 ### Admin Features
 - **User Management**: View and manage user accounts
 - **Activity Tracking**: Monitor login and upload activities
-- **Engagement Analytics**: Track user engagement metrics
-- **Data Completeness Scoring**: Assess the quality of user data
-- **User Growth Charts**: Visualize user adoption over time
-- **Statistical Reports**: Download comprehensive admin statistics
+- **Admin Dashboard**: Access to user statistics and application metrics
 
 ## Why Expense Tracker?
 
@@ -84,14 +79,7 @@ Expense Tracker bridges this gap by providing:
    pip install -r requirements.txt
    ```
 
-3. Create a `.env` file based on the provided `.env.example` (for admin credentials):
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Edit the `.env` file with secure credentials for production use.
-
-5. Run the application:
+3. Run the application:
    ```bash
    streamlit run app.py
    ```
@@ -112,7 +100,7 @@ This will launch the application on `http://localhost:8501` by default.
 
 For initial setup, use these credentials (remember to change them in production):
 - **Email**: admin@example.com
-- **Password**: Admin@123
+- **Password**: Admin@123456
 
 ## Troubleshooting
 
@@ -189,7 +177,7 @@ Access the admin panel by logging in with admin credentials to manage:
 
 ### Security Measures
 
-- **Password Security**: Passwords are hashed using bcrypt
+- **Password Security**: Passwords are hashed using pbkdf2_sha256
 - **Secret Answers**: Secret answers for password recovery are hashed with SHA-256
 - **Environmental Variables**: Sensitive configuration is stored in environment variables
 - **Session Management**: Sessions timeout after periods of inactivity
@@ -206,7 +194,7 @@ Access the admin panel by logging in with admin credentials to manage:
 ### Component Overview
 
 - **Frontend**: Streamlit-based interactive interface
-- **Authentication**: Custom auth system with bcrypt password hashing
+- **Authentication**: Custom auth system with password hashing
 - **Data Processing**: Pandas for data manipulation and analysis
 - **Visualization**: Plotly and Altair for interactive charts
 - **Storage**: File-based JSON storage for users and transaction data
@@ -228,6 +216,56 @@ expense-tracker/
 │   └── admin_panel.py    # Admin functionalities
 └── user_data/            # User transaction data (not in version control)
 ```
+
+## Contributing
+
+### Setting Up Development Environment
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/expense-tracker.git
+   cd expense-tracker
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv env
+   source env/bin/activate  # On Windows: env\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Copy the environment variables template:
+   ```bash
+   cp .env.example .env
+   ```
+
+5. Run the application:
+   ```bash
+   streamlit run app.py
+   ```
+
+### Before Committing Code
+
+1. Run the pre-commit check to ensure no sensitive data is being committed:
+   ```bash
+   python pre_commit_check.py
+   ```
+
+2. Fix any issues identified by the script.
+
+3. Consider setting up git hooks to run this automatically:
+   ```bash
+   echo 'python pre_commit_check.py' > .git/hooks/pre-commit
+   chmod +x .git/hooks/pre-commit
+   ```
+
+### Reporting Security Issues
+
+If you discover any security issues, please report them via email rather than creating a public issue.
 
 ## License
 

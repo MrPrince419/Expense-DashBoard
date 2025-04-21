@@ -2,6 +2,9 @@
 users.json
 session.json
 admin_logs.txt
+auth_debug.log
+upload.log
+*.log
 admin_stats.csv
 admin_stats/
 user_data/
@@ -20,3 +23,11 @@ env/
 # System files
 .DS_Store
 Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Current runtime files that might contain sensitive data
+*.lock

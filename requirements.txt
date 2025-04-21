@@ -1,8 +1,21 @@
-streamlit>=1.25.0  # Ensure the version supports st.switch_page
-pandas==1.5.3
-jsonschema==4.17.3
-passlib==1.7.4
-plotly==5.15.0
-altair==4.2.2
-xlsxwriter==3.1.2
-filelock==3.12.2  # Ensure this is included
+# Core dependencies
+streamlit>=1.10.0
+pandas>=1.3.0
+numpy>=1.20.0
+filelock>=3.0.0
+jsonschema>=3.2.0
+
+# Data handling and file formats
+openpyxl>=3.0.0  # For Excel support
+xlsxwriter>=3.0.0  # For Excel writing
+pyarrow>=6.0.0  # For Parquet support
+
+# Fuzzy matching
+rapidfuzz>=2.0.0
+
+# Advanced data profiling (choose one)
+ydata-profiling>=4.0.0  # Modern version of pandas-profiling
+# OR
+# pandas-profiling>=3.0.0
+# OR
+# sweetviz>=2.0.0
