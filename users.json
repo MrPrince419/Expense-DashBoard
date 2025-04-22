@@ -5,7 +5,7 @@
         "secret_question": "Your favorite color?",
         "secret_answer": "16477688c0e00699c6cfa4497a3612d7e83c532062b64b250fed8908128ed548",
         "role": "admin",
-        "last_login": "2025-04-21T17:24:49.222998",
+        "last_login": "2025-04-21T23:56:26.758077",
         "last_ip": null,
         "activity_log": [
             {
@@ -192,9 +192,49 @@
                 "action": "logout",
                 "timestamp": "2025-04-21T17:25:53.090589",
                 "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:06:10.784387",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:06:10.807388",
+                "ip": "unknown"
+            },
+            {
+                "action": "admin_access",
+                "timestamp": "2025-04-21T19:06:11.422875",
+                "ip": "unknown"
+            },
+            {
+                "action": "admin_access",
+                "timestamp": "2025-04-21T19:08:44.285418",
+                "ip": "unknown"
+            },
+            {
+                "action": "admin_access",
+                "timestamp": "2025-04-21T19:09:18.223865",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T23:56:26.758077",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T23:56:26.780232",
+                "ip": "unknown"
+            },
+            {
+                "action": "admin_access",
+                "timestamp": "2025-04-21T23:56:26.887796",
+                "ip": "unknown"
             }
         ],
-        "login_count": 10,
+        "login_count": 12,
         "upload_count": 0,
         "registration_date": "2025-04-20T20:38:18.898218",
         "old_username": "adminuser"
@@ -205,7 +245,7 @@
         "secret_question": "What was the name of your first pet?",
         "secret_answer": "31d58043e5d08e036adf3f2839325970070f178f2eb3a08b0d25506a15314eb4",
         "role": "user",
-        "last_login": "2025-04-21T16:34:19.097411",
+        "last_login": "2025-04-21T23:55:04.909186",
         "last_ip": "127.0.0.1",
         "activity_log": [
             {
@@ -316,9 +356,214 @@
                 "action": "logout",
                 "timestamp": "2025-04-21T16:36:05.048328",
                 "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:22:02.273555",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:22:02.299623",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:25:43.303320",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:25:43.330468",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:31:06.688550",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:31:06.716344",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:39:50.256058",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:39:50.284073",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:43:07.862492",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:43:07.887444",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:53:18.271034",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T19:53:18.299237",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:01:56.671159",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:01:56.697800",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:17:11.760667",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:17:11.778922",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:32:35.700762",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:32:35.727056",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:46:15.412879",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T20:46:15.442344",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:05:30.211661",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:05:30.238243",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:12:45.624945",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:12:45.654407",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:34:39.385922",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:34:39.414715",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:45:09.860981",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:45:09.889109",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:56:58.104333",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T21:56:58.138429",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:06:11.648830",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:06:11.673833",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:30:19.259074",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:30:19.286110",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:46:57.015644",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:46:57.042129",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:57:54.983391",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T22:57:55.011396",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T23:55:04.909186",
+                "ip": "unknown"
+            },
+            {
+                "action": "login",
+                "timestamp": "2025-04-21T23:55:04.940381",
+                "ip": "unknown"
+            },
+            {
+                "action": "logout",
+                "timestamp": "2025-04-21T23:56:15.532283",
+                "ip": "unknown"
             }
         ],
         "upload_count": 1,
-        "login_count": 8
+        "login_count": 28
     }
 }

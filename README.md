@@ -1,299 +1,149 @@
 # Expense Tracker
 
-A comprehensive financial management application built with Streamlit for tracking personal and business expenses with advanced analytics and administrative capabilities.
+A data-driven financial management application for analytics professionals. Streamline expense tracking, visualization, and financial insights through an intuitive Streamlit interface.
 
 ![Expense Tracker](asset/landing%20page.png)
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Why Expense Tracker?](#why-expense-tracker)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Troubleshooting](#troubleshooting)
-- [User Guide](#user-guide)
-- [Admin Guide](#admin-guide)
-- [Data Security](#data-security)
-- [Technical Architecture](#technical-architecture)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Overview
 
-Expense Tracker is a web-based application that helps individuals and small businesses manage their finances by tracking income, expenses, and providing insightful analytics. Built with Python and Streamlit, it offers an intuitive interface for uploading financial data, visualizing spending patterns, and generating reports.
+Expense Tracker empowers data analysts to transform raw financial data into actionable insights. The application handles multi-format data imports, automates column mapping, and generates interactive visualizations to reveal spending patterns and financial trends.
 
-![Dashboard Overview](asset/dashboard%20page%20%231.png)
+## Key Features
 
-## Features
+- **Data Import & Processing**
+  - Support for CSV, Excel, JSON, TXT, Parquet, PDF, and ZIP formats
+  - Intelligent column mapping with fuzzy matching
+  - Automated data cleaning and standardization
+  - Duplicate transaction detection using similarity algorithms
 
-### User Features
-- **Multi-format Data Import**: Upload financial data in CSV, Excel, JSON, TXT, or Parquet formats
-- **User Authentication**: Secure login, signup, and password recovery system
-- **Interactive Dashboard**: Visualize spending patterns, income vs. expenses, and category breakdowns
-- **Data Management**: Store and retrieve transaction data across sessions
-- **Profile Management**: User-specific data storage and retrieval
+- **Analytics & Visualization**
+  - Comprehensive spending pattern analysis
+  - Time series visualization of income vs expenses
+  - Category-based expenditure breakdowns
+  - Anomaly detection and trend identification
 
-![Upload Interface](asset/upload%20page%20%231.png)
+- **Data Management**
+  - Secure user-specific data storage
+  - Cross-session data persistence
+  - Export capabilities (CSV/Excel)
+  - Optional data profiling reports
 
-### Admin Features
-- **User Management**: View and manage user accounts
-- **Activity Tracking**: Monitor login and upload activities
-- **Admin Dashboard**: Access to user statistics and application metrics
+- **Administrative Tools**
+  - User activity monitoring
+  - System usage analytics
+  - Data quality metrics
+  - Export statistics for external analysis
 
-![Admin Dashboard](asset/admin%20panel%20%231.png)
+## Getting Started
 
-## Why Expense Tracker?
-
-### The Problem
-
-Managing personal and business finances often involves dealing with data scattered across multiple sources, making it difficult to get a comprehensive view of one's financial situation. Existing solutions are either too complex for casual users or too simplistic for meaningful financial analysis.
-
-### Our Solution
-
-Expense Tracker bridges this gap by providing:
-
-1. **Simplicity with Power**: An intuitive interface that doesn't sacrifice analytical capabilities
-2. **Data Flexibility**: Support for multiple data formats and automatic mapping of columns
-3. **Meaningful Insights**: Visualizations and metrics that help users understand their spending habits
-4. **Administrative Oversight**: Tools for organizations to manage and monitor user activity
-
-![Data Insights](asset/dashboard%20page%20%232.png)
-
-### Impact
-
-- **Financial Awareness**: Users gain deeper insights into their spending habits
-- **Time Savings**: Automated data processing and visualization save hours of manual work
-- **Better Decision Making**: Data-driven insights lead to better financial decisions
-- **Organizational Efficiency**: Administrative tools help organizations manage financial data across teams
-
-## Installation
-
-### Prerequisites
-
-- Python 3.8 or higher
-- pip (Python package installer)
-
-### Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/expense-tracker.git
-   cd expense-tracker
-   ```
-
-2. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Run the application:
-   ```bash
-   streamlit run app.py
-   ```
-
-## Usage
-
-### Running the Application
-
-Start the application with Streamlit:
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/expense-tracker.git
+cd expense-tracker
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch the application
 streamlit run app.py
 ```
 
-This will launch the application on `http://localhost:8501` by default.
+### Login Credentials
 
-### Default Admin Credentials
+- **Regular User**: Create an account via the signup page
+- **Admin Access**: 
+  - Email: admin@example.com
+  - Password: Admin@123456
 
-For initial setup, use these credentials (remember to change them in production):
-- **Email**: admin@example.com
-- **Password**: Admin@123456
+## Data Analysis Workflow
 
-## Troubleshooting
+### 1. Data Import
 
-### Common Issues
+Upload financial data through the intuitive interface:
 
-1. **Missing Dependencies**:
-   - Ensure all dependencies are installed using `pip install -r requirements.txt`.
+- **Auto-Detection**: The system intelligently maps columns from various formats
+- **Data Validation**: Automatic checks for data integrity and completeness
+- **Sample Data**: Test functionality with built-in sample datasets
 
-2. **Corrupted `users.json` File**:
-   - Delete the `users.json` file and restart the application. It will regenerate an empty file.
+![Upload Interface](asset/upload%20page%20%231.png)
 
-3. **Port Already in Use**:
-   - Use a different port by running:
-     ```bash
-     streamlit run app.py --server.port=8502
-     ```
+### 2. Data Exploration & Cleaning
 
-4. **File Upload Errors**:
-   - Ensure the uploaded file is in a supported format (CSV, Excel, JSON, TXT, or Parquet).
+- **Data Preview**: Examine uploaded transactions before processing
+- **Duplicate Detection**: Identify and manage duplicate entries
+- **Data Profiling**: Generate comprehensive dataset statistics (requires optional dependencies)
 
-5. **Session Timeout**:
-   - Log in again if your session times out after inactivity.
+### 3. Analysis & Visualization
 
-## User Guide
+Access the Dashboard to reveal financial insights:
 
-### Registration and Login
+- **Key Metrics**: Track spending, income, and savings rates
+- **Temporal Analysis**: Visualize financial patterns over time
+- **Categorical Breakdown**: Identify major spending categories
+- **Comparative Analysis**: Benchmark current vs. historical data
 
-1. Navigate to the signup tab on the homepage
-2. Create a user account with a secure password
-3. Login with your credentials
+![Dashboard Analytics](asset/dashboard%20page%20%232.png)
 
-![Login Screen](asset/landing%20page.png)
+### 4. Export & Sharing
 
-### Data Upload
+- Export processed data in preferred formats
+- Download visualization images for reports
+- Save analysis state for future sessions
 
-1. Navigate to the Upload page
-2. Use the file uploader to import your financial data
-3. Review the automatic column mapping
-4. Apply data cleaning options if needed
+## Advanced Features
 
-![Data Upload Process](asset/upload%20page%20%232.png)
+### PDF Data Extraction
 
-### Dashboard Analysis
+Extract transaction data directly from bank statements and receipts using:
+- Table detection algorithms
+- Pattern recognition for transaction data
+- Intelligent text processing
 
-1. Navigate to the Dashboard page
-2. View key metrics (income, expenses, savings)
-3. Explore visualizations:
-   - Income vs. Expense chart
-   - Spending breakdown by category
-   - Monthly trends
-   - Top spending categories
+### Data Profiling Integration
 
-![Dashboard Analytics](asset/dashboard%20page%20%233.png)
+Install optional dependencies for enhanced analysis:
+```bash
+pip install ydata-profiling pandas-profiling sweetviz
+```
 
-### Data Export
+### Fuzzy Matching for Data Quality
 
-1. Navigate to the Upload page
-2. Scroll to the Export section
-3. Select your desired format (CSV or Excel)
-4. Click the download button
-
-![Data Export](asset/upload%20page%20%233.png)
-
-## Admin Guide
-
-### Admin Dashboard
-
-Access the admin panel by logging in with admin credentials to manage:
-
-1. **User Management**: View all registered users and their activity
-2. **Engagement Stats**: Monitor user login and upload activities
-3. **Data Completeness**: Track the quality of user data
-4. **User Growth**: Visualize user adoption over time
-
-![Admin User Management](asset/admin%20panel%20%232.png)
-![Admin Statistics](asset/admin%20panel%20%233.png)
-
-### Downloading Statistics
-
-1. Navigate to the bottom of the admin panel
-2. Click the "Download Admin Stats" button
-3. Stats will be saved as CSV with the current date
-
-![Admin Reports](asset/admin%20panel%20%235.png)
-
-## Data Security
-
-### Security Measures
-
-- **Password Security**: Passwords are hashed using pbkdf2_sha256
-- **Secret Answers**: Secret answers for password recovery are hashed with SHA-256
-- **Environmental Variables**: Sensitive configuration is stored in environment variables
-- **Session Management**: Sessions timeout after periods of inactivity
-- **Data Validation**: Input validation prevents injection attacks
-
-### Privacy Considerations
-
-- **Data Storage**: User data is stored locally and not shared with external services
-- **Sensitive Data**: Sensitive files are excluded from version control via .gitignore
-- **Activity Logging**: User activities are logged but personally identifiable information is minimized
+Improve data consistency with fuzzy matching:
+```bash
+pip install rapidfuzz
+```
 
 ## Technical Architecture
 
-### Component Overview
-
-- **Frontend**: Streamlit-based interactive interface
-- **Authentication**: Custom auth system with password hashing
-- **Data Processing**: Pandas for data manipulation and analysis
+- **Data Processing**: Pandas for dataframe operations
 - **Visualization**: Plotly and Altair for interactive charts
-- **Storage**: File-based JSON storage for users and transaction data
+- **Authentication**: Custom user management with secure password hashing
+- **Storage**: JSON-based file storage with transaction history
 
-### Directory Structure
+## Troubleshooting
 
-```
-expense-tracker/
-├── app.py                # Main application entry point
-├── auth.py               # Authentication and user management
-├── utils.py              # Utility functions for data handling
-├── requirements.txt      # Dependencies
-├── .env.example          # Template for environment variables
-├── .gitignore            # Git ignore rules
-├── users.json            # User database (not in version control)
-├── pages/                # Application pages
-│   ├── 1_Upload.py       # Data upload and export functionality
-│   ├── 2_Dashboard.py    # Analytics dashboard
-│   └── admin_panel.py    # Admin functionalities
-└── user_data/            # User transaction data (not in version control)
-```
+| Issue | Solution |
+|-------|----------|
+| Missing dependencies | Run `pip install -r requirements.txt` |
+| File upload errors | Verify file format compatibility |
+| Performance issues | Consider data sampling for large datasets |
+| Corrupted user data | Delete user-specific JSON files to reset |
 
-## Contributing
+## Security
 
-### Setting Up Development Environment
+- Password hashing using pbkdf2_sha256
+- Secret questions with SHA-256 answer hashing
+- Local data storage with minimal PII collection
+- Input validation against injection attacks
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/expense-tracker.git
-   cd expense-tracker
-   ```
+## For Developers
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv env
-   source env/bin/activate  # On Windows: env\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Copy the environment variables template:
-   ```bash
-   cp .env.example .env
-   ```
-
-5. Run the application:
-   ```bash
-   streamlit run app.py
-   ```
-
-### Before Committing Code
-
-1. Run the pre-commit check to ensure no sensitive data is being committed:
-   ```bash
-   python pre_commit_check.py
-   ```
-
-2. Fix any issues identified by the script.
-
-3. Consider setting up git hooks to run this automatically:
-   ```bash
-   echo 'python pre_commit_check.py' > .git/hooks/pre-commit
-   chmod +x .git/hooks/pre-commit
-   ```
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## Contact
-
-For questions or support, please open an issue on our GitHub repository or contact the maintainers directly at [![Email](https://img.shields.io/badge/Email-Support-blue?style=flat-square&logo=gmail)](mailto:PrinceUwagboe44@outlook.com).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ---
 
 *Last updated: April 21, 2025*
+
+For support: [![Email](https://img.shields.io/badge/Email-Support-blue?style=flat-square&logo=gmail)](mailto:PrinceUwagboe44@outlook.com)

@@ -11,6 +11,8 @@ plotly>=5.10.0  # For interactive charts
 openpyxl>=3.0.0  # For Excel support
 xlsxwriter>=3.0.0  # For Excel writing
 pyarrow>=6.0.0  # For Parquet support
+pdfplumber>=0.11.0  # For PDF text extraction
+tabula-py>=2.9.0  # For PDF table extraction
 
 # Fuzzy matching
 rapidfuzz>=2.0.0
